@@ -1,0 +1,19 @@
+# Composer
+/vendor/
+
+# Environment file
+.env
+
+# SQLite databases (local dev)
+/database/*.sqlite
+/database/*.sqlite-journal
+
+# Logs
+/logs/
+*.log
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

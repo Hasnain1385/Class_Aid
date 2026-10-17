@@ -1,0 +1,13 @@
+{
+    "name": "class-aid/class-aid",
+    "description": "Educational Record-Keeping Suite for Multi-Class Teachers",
+    "type": "project",
+    "require": {
+        "php": ">=8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    }
+}
