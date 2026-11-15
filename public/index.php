@@ -183,6 +183,7 @@ $router->post('/students/import/scan', [StudentController::class, 'bulkImportSca
 $router->post('/students/import/commit', [StudentController::class, 'bulkImportCommit'], ['auth']);
 $router->get('/students/import/template', [StudentController::class, 'downloadTemplate'], ['auth']);
 $router->get('/students/search/api', [StudentController::class, 'searchApi'], ['auth']);
+$router->get('/students/print/roster', [StudentController::class, 'printRoster'], ['auth']);
 $router->get('/api/students/{id}/attendance-history', [StudentController::class, 'attendanceHistoryApi'], ['auth']);
 $router->get('/students/{id}', [StudentController::class, 'show'], ['auth']);
 $router->get('/students/{id}/edit', [StudentController::class, 'edit'], ['auth']);
@@ -227,6 +228,7 @@ $router->post('/results/import/commit', [ResultController::class, 'bulkImportCom
 $router->get('/results/import/template/{id}', [ResultController::class, 'downloadTemplate'], ['auth']);
 $router->get('/results/enter/{id}', [ResultController::class, 'enterMarks'], ['auth']);
 $router->post('/results/enter/{id}', [ResultController::class, 'saveMarks'], ['auth']);
+$router->get('/results/print/class-matrix', [ResultController::class, 'printClassMatrix'], ['auth']);
 $router->get('/results/print/exam/{id}', [ResultController::class, 'printExam'], ['auth']);
 $router->get('/results/report/{id}', [ResultController::class, 'studentReport'], ['auth']);
 

@@ -96,79 +96,68 @@
             <p class="text-xs mt-1">No call logs match the selected filter criteria.</p>
         </div>
     <?php else: ?>
-        <div class="space-y-3.5">
+        <div class="space-y-2.5">
             <?php foreach ($calls as $call): ?>
-                <div class="glass-card p-4 sm:p-5 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
+                <div class="glass-card p-3 sm:p-3.5 hover:border-slate-300 dark:hover:border-slate-700 transition-all">
                     
-                    <!-- Top header row -->
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-100 dark:border-slate-800">
+                    <!-- Top header row (Compact Single Ribbon) -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-2 flex-wrap">
                             <?= \App\Models\ParentCallLog::renderPill($call['call_category']) ?>
-                            <a href="/students/<?= $call['student_id'] ?>" class="text-sm font-bold text-slate-900 dark:text-white hover:underline">
+                            <a href="/students/<?= $call['student_id'] ?>" class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white hover:underline">
                                 <?= $e($call['first_name'] . ' ' . $call['last_name']) ?>
                             </a>
                             <span class="font-mono text-xs text-indigo-500 font-semibold tabular-nums">[<?= $e($call['student_admin_id']) ?>]</span>
-                            <span class="text-xs px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/60">
+                            <span class="text-[11px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-700/60">
                                 <?= $e($call['class_name']) ?> - <?= $e($call['class_section']) ?>
+                            </span>
+                            <span class="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                            <span class="text-xs text-slate-600 dark:text-slate-300">
+                                <span class="text-slate-400">Contact:</span> <strong><?= $e($call['contact_person_name']) ?></strong> (<?= $e($call['relationship']) ?>)
+                                <span class="font-mono text-slate-500 tabular-nums ml-1"><?= $e($call['phone_dialed']) ?></span>
                             </span>
                         </div>
 
-                        <div class="flex items-center gap-2 text-xs text-slate-400 tabular-nums">
-                            <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                        <div class="flex items-center gap-1.5 text-[11px] text-slate-400 tabular-nums flex-shrink-0">
+                            <i data-lucide="clock" class="w-3 h-3"></i>
                             <span><?= date('M d, Y • h:i A', strtotime($call['call_timestamp'])) ?></span>
                         </div>
                     </div>
 
-                    <!-- Contact Person & Phone -->
-                    <div class="mb-3 text-xs flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-600 dark:text-slate-300">
-                        <div>
-                            <span class="text-slate-400">Contacted:</span>
-                            <strong class="text-slate-900 dark:text-white"><?= $e($call['contact_person_name']) ?></strong> (<?= $e($call['relationship']) ?>)
-                        </div>
-                        <div>
-                            <span class="text-slate-400">Dialed Number:</span>
-                            <span class="font-mono tabular-nums font-semibold"><?= $e($call['phone_dialed']) ?></span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400">Interaction:</span>
-                            <span class="font-medium"><?= $e($call['call_type']) ?></span>
-                        </div>
-                    </div>
-
-                    <!-- Discussion & Parent Response Split -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
-                        <div class="bg-slate-50 dark:bg-slate-950/60 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
-                            <span class="text-slate-400 block text-xs font-bold uppercase tracking-wider mb-1">
-                                Discussion Notes & Reason:
+                    <!-- Discussion & Parent Response Split (Compact Layout) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                        <div class="bg-slate-50/70 dark:bg-slate-950/40 p-2.5 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                            <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                                Discussion Notes:
                             </span>
-                            <p class="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line">
+                            <p class="text-slate-800 dark:text-slate-200 leading-snug break-words">
                                 <?= $e($call['discussion_summary']) ?>
                             </p>
                         </div>
 
-                        <div class="bg-indigo-50/30 dark:bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-200/60 dark:border-indigo-900/50">
-                            <span class="text-indigo-600 dark:text-indigo-400 block text-xs font-bold uppercase tracking-wider mb-1">
-                                Parent Response & Commitment:
+                        <div class="bg-indigo-50/20 dark:bg-indigo-950/20 p-2.5 rounded-lg border border-indigo-200/50 dark:border-indigo-900/40">
+                            <span class="text-indigo-600 dark:text-indigo-400 block text-[10px] font-bold uppercase tracking-wider mb-0.5">
+                                Parent Response &amp; Commitment:
                             </span>
-                            <p class="text-slate-800 dark:text-slate-200 italic font-medium leading-relaxed whitespace-pre-line">
+                            <p class="text-slate-800 dark:text-slate-200 italic font-medium leading-snug break-words">
                                 "<?= $e($call['parent_response']) ?>"
                             </p>
                         </div>
                     </div>
 
-                    <!-- Footer actions: WhatsApp, Follow-up status -->
-                    <div class="mt-3.5 pt-3 flex flex-wrap items-center justify-between gap-3 text-xs border-t border-slate-100 dark:border-slate-800">
+                    <!-- Footer actions (WhatsApp, Follow-up status, Toggle) -->
+                    <div class="mt-2 pt-2 flex flex-wrap items-center justify-between gap-2 text-xs border-t border-slate-100 dark:border-slate-800">
                         <div class="flex items-center gap-3">
                             <button type="button" 
                                     onclick="openWhatsApp('<?= $e($call['phone_dialed']) ?>', '<?= $e($call['first_name'] . ' ' . $call['last_name']) ?>', '<?= $e($call['student_admin_id']) ?>')"
-                                    class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold hover:underline">
-                                <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold hover:underline cursor-pointer">
+                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
                                 <span>WhatsApp Parent</span>
                             </button>
 
                             <?php if ($call['follow_up_required']): ?>
-                                <span class="text-amber-500 flex items-center gap-1 font-semibold">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                                <span class="text-amber-500 flex items-center gap-1 font-semibold text-[11px]">
+                                    <i data-lucide="calendar" class="w-3 h-3"></i>
                                     <span>Follow-up: <?= !empty($call['follow_up_date']) ? date('M d, Y', strtotime($call['follow_up_date'])) : 'Pending' ?></span>
                                 </span>
                             <?php endif; ?>
@@ -178,12 +167,12 @@
                             <form method="POST" action="/calls/toggle-status/<?= $call['id'] ?>">
                                 <?= $csrf() ?>
                                 <input type="hidden" name="redirect" value="/calls?<?= http_build_query($filters) ?>">
-                                <button type="submit" class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition-colors cursor-pointer <?= $call['status'] === 'Resolved' ? 'badge-emerald' : 'badge-amber' ?>">
-                                    Status: <?= $e($call['status']) ?> (Click to switch)
+                                <button type="submit" class="px-2 py-0.5 rounded-lg border text-[11px] font-semibold transition-colors cursor-pointer <?= $call['status'] === 'Resolved' ? 'badge-emerald' : 'badge-amber' ?>">
+                                    Status: <?= $e($call['status']) ?>
                                 </button>
                             </form>
 
-                            <a href="/students/<?= $call['student_id'] ?>" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold ml-2">
+                            <a href="/students/<?= $call['student_id'] ?>" class="text-indigo-600 dark:text-indigo-400 hover:underline font-semibold ml-1 text-xs">
                                 Student Dossier &rarr;
                             </a>
                         </div>

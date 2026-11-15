@@ -251,6 +251,7 @@ class Student
             'excused' => (int) ($stats['excused_days'] ?? 0),
             'excused_days' => (int) ($stats['excused_days'] ?? 0),
             'percentage' => $percentage,
+            'rate' => $percentage,
             'consecutive_absences' => self::getConsecutiveAbsences($studentId),
         ];
     }

@@ -351,6 +351,47 @@ class StudentController
         Response::redirect("/students?class_id={$classId}");
     }
 
+    /**
+     * Print official student roster report for selected class or all classes
+     */
+    public function printRoster(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classId = (int) $request->query('class_id', 0);
+        $classes = SchoolClass::getAllByTeacher($teacherId);
+
+        $selectedClass = null;
+        if ($classId > 0) {
+            $selectedClass = SchoolClass::findById($classId);
+            if (!$selectedClass || ((int)($selectedClass['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin())) {
+                Session::flash('error', 'Selected class not found or access denied.');
+                Response::redirect('/students');
+                return;
+            }
+            $students = Student::getByClass($classId);
+        } else {
+            $students = Student::getAll($teacherId);
+        }
+
+        // Decorate with attendance stats
+        foreach ($students as &$stu) {
+            $stu['stats'] = Student::getAttendanceStats((int) $stu['id']);
+        }
+        unset($stu);
+
+        $teacher = Session::user();
+
+        View::render('students.print_roster', [
+            'title' => $selectedClass
+                ? "Class Roster - {$selectedClass['name']} ({$selectedClass['section']})"
+                : 'Comprehensive Student Directory & Roster',
+            'class' => $selectedClass,
+            'classes' => $classes,
+            'students' => $students,
+            'teacher' => $teacher,
+        ], 'print');
+    }
+
     public function downloadTemplate(Request $request): void
     {
         header('Content-Type: text/csv; charset=utf-8');

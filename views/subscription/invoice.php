@@ -23,7 +23,7 @@
         }
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+    <link rel="stylesheet" href="/assets/css/glassmorphism.css?v=1.1.0">
     <style>
         @media print {
             body {

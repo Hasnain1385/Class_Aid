@@ -60,7 +60,7 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom Glassmorphism CSS -->
-    <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+    <link rel="stylesheet" href="/assets/css/glassmorphism.css?v=1.1.0">
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500 selection:text-white text-slate-900 dark:text-slate-100 transition-colors">
 

@@ -1,9 +1,9 @@
 <div>
     <!-- Document Header -->
-    <div class="border-b-2 border-gray-900 pb-4 mb-6 flex justify-between items-start">
+    <div class="border-b-2 border-slate-900 pb-2.5 mb-3 flex justify-between items-start">
         <div>
-            <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Student Academic Report Card</h1>
-            <p class="text-xs text-gray-600 mt-1"><?= $e($teacher['school_name'] ?? 'Class Aid Suite') ?> • Official Academic Performance Record</p>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 uppercase">Student Academic Report Card</h1>
+            <p class="text-xs text-slate-600 mt-0.5"><?= $e($teacher['school_name'] ?? 'Class Aid Suite') ?> • Official Academic Performance Record</p>
         </div>
         <div class="text-right text-xs">
             <div><strong>Academic Year:</strong> <?= $e($student['academic_year'] ?? '2026-2027') ?></div>
@@ -12,59 +12,59 @@
     </div>
 
     <!-- Student Metadata Card -->
-    <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+    <div class="bg-slate-50 border border-slate-300 rounded-xl p-2.5 mb-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div>
-            <span class="text-gray-500 uppercase block font-semibold text-[10px]">Student Full Name</span>
-            <span class="font-bold text-sm text-gray-900"><?= $e($student['first_name'] . ' ' . $student['last_name']) ?></span>
+            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Student Full Name</span>
+            <span class="font-bold text-sm text-slate-900"><?= $e($student['first_name'] . ' ' . $student['last_name']) ?></span>
         </div>
         <div>
-            <span class="text-gray-500 uppercase block font-semibold text-[10px]">Student-Admin ID</span>
+            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Student-Admin ID</span>
             <span class="font-mono font-bold text-sm text-indigo-700"><?= $e($student['student_admin_id']) ?></span>
         </div>
         <div>
-            <span class="text-gray-500 uppercase block font-semibold text-[10px]">Class & Section</span>
-            <span class="font-bold text-sm text-gray-900"><?= $e($student['class_name'] . ' ' . $student['class_section']) ?></span>
+            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Class &amp; Section</span>
+            <span class="font-bold text-sm text-slate-900"><?= $e($student['class_name'] . ' ' . $student['class_section']) ?></span>
         </div>
         <div>
-            <span class="text-gray-500 uppercase block font-semibold text-[10px]">Class Teacher</span>
-            <span class="font-bold text-gray-900"><?= $e($teacher['name'] ?? 'Class Teacher') ?></span>
+            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Class Teacher</span>
+            <span class="font-bold text-slate-900"><?= $e($teacher['name'] ?? 'Class Teacher') ?></span>
         </div>
     </div>
 
     <!-- Attendance Performance Summary -->
-    <div class="mb-6 p-4 border border-gray-300 rounded-lg flex justify-between items-center text-xs">
+    <div class="mb-3.5 p-2.5 border border-slate-300 rounded-xl flex justify-between items-center text-xs bg-slate-50/50">
         <div>
-            <span class="font-bold text-gray-800 uppercase text-[10px] block">Attendance Performance</span>
+            <span class="font-bold text-slate-800 uppercase text-[10px] block">Attendance Performance</span>
             <span class="text-sm font-extrabold text-indigo-700"><?= $attendanceStats['percentage'] ?>% Overall Attendance</span>
         </div>
-        <div class="flex gap-6 text-gray-600">
-            <div><strong>Days Present:</strong> <?= $attendanceStats['present'] ?></div>
-            <div><strong>Days Absent:</strong> <?= $attendanceStats['absent'] ?></div>
+        <div class="flex gap-4 sm:gap-6 text-slate-600 text-[11px]">
+            <div><strong>Present:</strong> <?= $attendanceStats['present'] ?></div>
+            <div><strong>Absent:</strong> <?= $attendanceStats['absent'] ?></div>
             <div><strong>Excused:</strong> <?= $attendanceStats['excused'] ?></div>
-            <div><strong>Total School Days:</strong> <?= $attendanceStats['total'] ?></div>
+            <div><strong>Total Days:</strong> <?= $attendanceStats['total'] ?></div>
         </div>
     </div>
 
     <!-- Academic Marks Table -->
-    <div class="mb-6">
-        <h2 class="text-sm font-bold uppercase tracking-wider text-gray-800 mb-3">Assessment & Examination Results</h2>
+    <div class="mb-4">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 mb-2">Assessment &amp; Examination Results</h2>
 
-        <table class="w-full text-left text-xs border-collapse border border-gray-300">
-            <thead class="bg-gray-100 border-b border-gray-300 text-gray-700 uppercase font-bold text-[10px]">
+        <table class="w-full text-left text-xs border-collapse border border-slate-300 compact-table">
+            <thead class="bg-slate-100 border-b border-slate-300 text-slate-700 uppercase font-bold text-[9.5pt]">
                 <tr>
-                    <th class="border border-gray-300 p-2.5">Subject & Examination</th>
-                    <th class="border border-gray-300 p-2.5">Term</th>
-                    <th class="border border-gray-300 p-2.5 text-center">Max Marks</th>
-                    <th class="border border-gray-300 p-2.5 text-center">Marks Scored</th>
-                    <th class="border border-gray-300 p-2.5 text-center">Percentage</th>
-                    <th class="border border-gray-300 p-2.5 text-center">Grade</th>
-                    <th class="border border-gray-300 p-2.5">Remarks</th>
+                    <th class="border border-slate-300 py-1 px-1.5">Subject &amp; Examination</th>
+                    <th class="border border-slate-300 py-1 px-1.5 w-20">Term</th>
+                    <th class="border border-slate-300 py-1 px-1.5 text-center w-20">Max Marks</th>
+                    <th class="border border-slate-300 py-1 px-1.5 text-center w-24">Marks Scored</th>
+                    <th class="border border-slate-300 py-1 px-1.5 text-center w-20">Percentage</th>
+                    <th class="border border-slate-300 py-1 px-1.5 text-center w-16">Grade</th>
+                    <th class="border border-slate-300 py-1 px-1.5">Remarks</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($marks)): ?>
                     <tr>
-                        <td colspan="7" class="border border-gray-300 p-4 text-center text-gray-500 italic">
+                        <td colspan="7" class="border border-slate-300 p-4 text-center text-slate-500 italic">
                             No examinations recorded for this student.
                         </td>
                     </tr>
@@ -78,21 +78,21 @@
                             $totalMax += (float) $m['max_marks'];
                             $totalScored += (float) $m['marks_obtained'];
                         ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="border border-gray-300 p-2.5 font-bold text-gray-900">
+                        <tr class="hover:bg-slate-50" style="page-break-inside: avoid;">
+                            <td class="border border-slate-300 py-1 px-1.5 font-bold text-slate-900 text-[9.5pt]">
                                 <?= $e($m['subject_name'] ?? 'General') ?>
-                                <span class="block text-[10px] font-normal text-gray-500"><?= $e($m['exam_title']) ?></span>
+                                <span class="block text-[8.5pt] font-normal text-slate-500"><?= $e($m['exam_title']) ?></span>
                             </td>
-                            <td class="border border-gray-300 p-2.5"><?= $e($m['term']) ?></td>
-                            <td class="border border-gray-300 p-2.5 text-center font-mono"><?= $m['max_marks'] ?></td>
-                            <td class="border border-gray-300 p-2.5 text-center font-mono font-bold text-gray-900"><?= $m['marks_obtained'] ?></td>
-                            <td class="border border-gray-300 p-2.5 text-center font-mono font-bold text-indigo-700"><?= $m['percentage'] ?>%</td>
-                            <td class="border border-gray-300 p-2.5 text-center font-bold">
-                                <span class="px-2 py-0.5 rounded text-[11px] <?= $m['is_passed'] ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' ?>">
+                            <td class="border border-slate-300 py-1 px-1.5 text-[9pt]"><?= $e($m['term']) ?></td>
+                            <td class="border border-slate-300 py-1 px-1.5 text-center font-mono text-[9pt]"><?= $m['max_marks'] ?></td>
+                            <td class="border border-slate-300 py-1 px-1.5 text-center font-mono font-bold text-slate-900 text-[9pt]"><?= $m['marks_obtained'] ?></td>
+                            <td class="border border-slate-300 py-1 px-1.5 text-center font-mono font-bold text-indigo-700 text-[9pt]"><?= $m['percentage'] ?>%</td>
+                            <td class="border border-slate-300 py-1 px-1 text-center font-bold">
+                                <span class="px-1.5 py-0.2 rounded text-[8pt] <?= $m['is_passed'] ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300' ?>">
                                     <?= $m['letter_grade'] ?>
                                 </span>
                             </td>
-                            <td class="border border-gray-300 p-2.5 italic text-[11px] text-gray-600">
+                            <td class="border border-slate-300 py-1 px-1.5 italic text-[9pt] text-slate-600">
                                 <?= !empty($m['remarks']) ? $e($m['remarks']) : '-' ?>
                             </td>
                         </tr>
@@ -103,13 +103,13 @@
                         $overallPct = ($totalMax > 0) ? round(($totalScored / $totalMax) * 100, 1) : 0;
                         $overallGrade = \App\Utils\GradeCalculator::calculateGrade($overallPct);
                     ?>
-                    <tr class="bg-gray-100 font-bold border-t-2 border-gray-400">
-                        <td colspan="2" class="border border-gray-300 p-2.5 uppercase text-gray-800">Overall Aggregate</td>
-                        <td class="border border-gray-300 p-2.5 text-center font-mono"><?= $totalMax ?></td>
-                        <td class="border border-gray-300 p-2.5 text-center font-mono text-gray-900"><?= $totalScored ?></td>
-                        <td class="border border-gray-300 p-2.5 text-center font-mono text-indigo-800"><?= $overallPct ?>%</td>
-                        <td class="border border-gray-300 p-2.5 text-center text-sm font-black"><?= $overallGrade ?></td>
-                        <td class="border border-gray-300 p-2.5 text-[10px] text-gray-600 uppercase">
+                    <tr class="bg-slate-100 font-bold border-t-2 border-slate-400" style="page-break-inside: avoid;">
+                        <td colspan="2" class="border border-slate-300 py-1.5 px-2 uppercase text-slate-800 text-[9pt]">Overall Aggregate</td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-center font-mono text-[9pt]"><?= $totalMax ?></td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-center font-mono text-slate-900 text-[9pt]"><?= $totalScored ?></td>
+                        <td class="border border-slate-300 py-1.5 px-1.5 text-center font-mono text-indigo-800 text-[9pt]"><?= $overallPct ?>%</td>
+                        <td class="border border-slate-300 py-1.5 px-1 text-center text-[9pt] font-black"><?= $overallGrade ?></td>
+                        <td class="border border-slate-300 py-1.5 px-2 text-[8.5pt] text-slate-600 uppercase">
                             <?= ($overallPct >= 40) ? 'Passed' : 'Needs Improvement' ?>
                         </td>
                     </tr>

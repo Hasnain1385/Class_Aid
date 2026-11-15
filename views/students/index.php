@@ -11,6 +11,10 @@
             </p>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
+            <a href="/students/print/roster<?= $selectedClassId ? '?class_id=' . $selectedClassId : '' ?>" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-sm transition-all" title="Print Official Student Roster & Directory">
+                <i data-lucide="printer" class="w-4 h-4 text-violet-500"></i>
+                <span>Print Roster<?= $selectedClassId ? ' (Selected Class)' : '' ?></span>
+            </a>
             <a href="/students/import<?= $selectedClassId ? '?class_id=' . $selectedClassId : '' ?>" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-sm transition-all">
                 <i data-lucide="scan-line" class="w-4 h-4 text-indigo-500"></i>
                 <span>Bulk Import (CSV / OCR)</span>

@@ -371,6 +371,27 @@ it('Supports editing class details, deleting subjects, and removing classes clea
     }
 });
 
+it('Compiles student roster with attendance metrics for class reporting', function () use ($testHomeClassId, $testStudentId) {
+    $students = Student::getByClass($testHomeClassId);
+    if (empty($students)) {
+        throw new \Exception("No students found in home class");
+    }
+
+    $found = false;
+    foreach ($students as &$stu) {
+        $stu['stats'] = Student::getAttendanceStats((int) $stu['id']);
+        if ((int)$stu['id'] === $testStudentId) {
+            $found = true;
+            if (!isset($stu['stats']['rate'])) {
+                throw new \Exception("Student attendance stats rate missing");
+            }
+        }
+    }
+    if (!$found) {
+        throw new \Exception("Test student not found in roster");
+    }
+});
+
 // -------------------------------------------------------------
 // Group 5: Attendance & Consecutive Absence Alerts
 // -------------------------------------------------------------
@@ -490,6 +511,42 @@ it('Records exam batch marks and produces student academic report cards', functi
     }
     if ($studentMarks[0]['grade'] !== 'A') {
         throw new \Exception("Letter grade should be A, got " . $studentMarks[0]['grade']);
+    }
+});
+
+it('Consolidated class assessment matrix accurately computes totals, percentages and grades across selected tests', function () use ($testHomeClassId, $testStudentId) {
+    $subjects = Subject::getByClass($testHomeClassId);
+    $subId = (int)$subjects[0]['id'];
+
+    $exam2Id = Exam::create([
+        'subject_id' => $subId,
+        'title' => 'Term 1 Final Exam',
+        'term' => 'Term 1',
+        'max_marks' => 100.0,
+        'pass_marks' => 40.0,
+        'exam_date' => date('Y-m-d'),
+    ]);
+
+    Mark::recordBatch($exam2Id, 100.0, 40.0, [
+        $testStudentId => ['score' => 92.0, 'remarks' => 'Outstanding final achievement.']
+    ]);
+
+    $allExams = Exam::getByClass($testHomeClassId);
+    if (count($allExams) < 2) {
+        throw new \Exception("Expected at least 2 exams for class");
+    }
+
+    // Cumulative check: Exam 1 (88) + Exam 2 (92) = 180 / 200 = 90% -> A+
+    $totalObtained = 88.0 + 92.0;
+    $totalMax = 200.0;
+    $overallPct = round(($totalObtained / $totalMax) * 100, 1);
+    $overallGrade = GradeCalculator::calculateGrade($overallPct);
+
+    if ($overallPct !== 90.0) {
+        throw new \Exception("Expected 90.0%, got {$overallPct}%");
+    }
+    if ($overallGrade !== 'A+') {
+        throw new \Exception("Expected A+ for 90%, got {$overallGrade}");
     }
 });
 

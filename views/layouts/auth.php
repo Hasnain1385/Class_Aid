@@ -42,7 +42,7 @@
         tailwind.config = { darkMode: 'class' };
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/assets/css/glassmorphism.css">
+    <link rel="stylesheet" href="/assets/css/glassmorphism.css?v=1.1.0">
 </head>
 <body class="min-h-screen flex items-center justify-center p-3 sm:p-6 py-10 text-slate-900 dark:text-slate-100 transition-colors">
     <!-- Top Page Loading Progress Bar -->

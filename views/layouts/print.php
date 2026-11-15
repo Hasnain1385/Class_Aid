@@ -9,7 +9,7 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 12mm 12mm 16mm 12mm;
+            margin: 8mm 8mm 12mm 8mm;
         }
         @media print {
             html, body {
@@ -18,8 +18,8 @@
                 padding: 0 !important;
                 background: #ffffff !important;
                 color: #0f172a !important;
-                font-size: 10.5pt !important;
-                line-height: 1.4 !important;
+                font-size: 10pt !important;
+                line-height: 1.25 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -39,8 +39,16 @@
                 break-inside: avoid !important;
             }
             .print-institutional-footer {
-                margin-top: 18mm !important;
+                margin-top: 10mm !important;
                 page-break-inside: avoid !important;
+            }
+            table.compact-table th, table.compact-table td {
+                padding: 1.2mm 1.8mm !important;
+                line-height: 1.15 !important;
+                font-size: 8.5pt !important;
+            }
+            table.compact-table {
+                font-size: 8.5pt !important;
             }
         }
         @media screen {
@@ -55,12 +63,17 @@
                 margin-right: auto;
                 background: #ffffff;
             }
+            table.compact-table th, table.compact-table td {
+                padding: 0.28rem 0.45rem !important;
+                line-height: 1.15 !important;
+                font-size: 0.75rem !important;
+            }
         }
         table {
-            font-size: 10.5pt !important;
+            font-size: 10pt !important;
         }
         th, td {
-            font-size: 10pt !important;
+            font-size: 9.5pt !important;
         }
     </style>
 </head>

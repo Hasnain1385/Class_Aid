@@ -13,6 +13,13 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
+            <button type="button"
+                    onclick="openPrintMatrixModal()"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all cursor-pointer"
+                    title="Print Consolidated Class Assessment Matrix">
+                <i data-lucide="printer" class="w-4 h-4 text-violet-500"></i>
+                <span>Print Class Matrix Report</span>
+            </button>
             <a href="/results/import" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all">
                 <i data-lucide="scan-line" class="w-4 h-4 text-violet-500"></i>
                 <span>Bulk Import Marks (CSV / OCR)</span>
@@ -163,3 +170,116 @@
         </form>
     </div>
 </div>
+
+<!-- Modal: Print Consolidated Class Exam Matrix -->
+<div id="modal-print-class-matrix" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="glass-card max-w-lg w-full p-6 space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-violet-600/15 text-violet-600 flex items-center justify-center">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900 dark:text-white">Print Consolidated Class Result Sheet</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Print whole class performance across selected tests</p>
+                </div>
+            </div>
+            <button type="button" onclick="closePrintMatrixModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <form id="form-print-matrix" method="GET" action="/results/print/class-matrix" target="_blank" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Class *</label>
+                <select id="matrix-class-select" name="class_id" onchange="updateMatrixExamsList()" required class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input">
+                    <?php foreach ($classes as $c): ?>
+                        <option value="<?= $c['id'] ?>"><?= $e($c['name'] . ' - ' . $c['section']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">Select Tests to Include</label>
+                    <button type="button" onclick="toggleSelectAllExams()" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer">
+                        Select All / None
+                    </button>
+                </div>
+                <div id="matrix-exams-container" class="max-h-48 overflow-y-auto space-y-2 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 text-xs">
+                    <!-- Populated via JS -->
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">If no individual tests are checked, all examinations for the selected class will be included in the report.</p>
+            </div>
+
+            <div class="pt-3 flex justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+                <button type="button" onclick="closePrintMatrixModal()" class="px-4 py-2 text-xs rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                    Cancel
+                </button>
+                <button type="submit" class="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                    <span>Generate &amp; Print Matrix</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const classExamsData = <?= json_encode(array_map(function($e) {
+        return [
+            'id' => (int) $e['id'],
+            'class_id' => (int) $e['class_id'],
+            'title' => $e['title'],
+            'term' => $e['term'],
+            'subject_name' => $e['subject_name'],
+            'max_marks' => $e['max_marks'],
+            'date' => date('M d, Y', strtotime($e['exam_date'])),
+        ];
+    }, $exams)) ?>;
+
+    function openPrintMatrixModal() {
+        document.getElementById('modal-print-class-matrix').classList.remove('hidden');
+        updateMatrixExamsList();
+    }
+
+    function closePrintMatrixModal() {
+        document.getElementById('modal-print-class-matrix').classList.add('hidden');
+    }
+
+    function updateMatrixExamsList() {
+        const classSelect = document.getElementById('matrix-class-select');
+        const container = document.getElementById('matrix-exams-container');
+        if (!classSelect || !container) return;
+
+        const classId = parseInt(classSelect.value, 10);
+        const filtered = classExamsData.filter(e => e.class_id === classId);
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-slate-400 py-3 text-center italic">No examinations defined yet for this class.</div>';
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(e => {
+            html += `
+                <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800/60 cursor-pointer">
+                    <input type="checkbox" name="exam_ids[]" value="${e.id}" checked class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <div class="flex-1 min-w-0">
+                        <span class="font-semibold text-slate-800 dark:text-slate-200 block truncate">${e.title}</span>
+                        <span class="text-[10px] text-slate-500 dark:text-slate-400">${e.subject_name} • ${e.term} (Max: ${e.max_marks} pts)</span>
+                    </div>
+                </label>
+            `;
+        });
+        container.innerHTML = html;
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    let allSelectedState = true;
+    function toggleSelectAllExams() {
+        const checkboxes = document.querySelectorAll('#matrix-exams-container input[type="checkbox"]');
+        allSelectedState = !allSelectedState;
+        checkboxes.forEach(cb => cb.checked = allSelectedState);
+    }
+</script>

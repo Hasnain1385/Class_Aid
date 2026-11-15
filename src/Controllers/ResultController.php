@@ -175,6 +175,137 @@ class ResultController
         ], 'print');
     }
 
+    /**
+     * Print consolidated single report of whole class for selected tests results
+     */
+    public function printClassMatrix(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classId = (int) $request->query('class_id', 0);
+        $classes = SchoolClass::getAllByTeacher($teacherId);
+
+        if ($classId <= 0 && !empty($classes)) {
+            $classId = (int) $classes[0]['id'];
+        }
+
+        $class = $classId > 0 ? SchoolClass::findById($classId) : null;
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Class not found or access denied.');
+            Response::redirect('/results');
+            return;
+        }
+
+        // Get all exams for this class
+        $allClassExams = Exam::getByClass($classId);
+
+        // Filter by selected exam IDs if provided
+        $rawExams = $request->query('exam_ids', '');
+        $selectedExamIds = [];
+        if (is_array($rawExams)) {
+            $selectedExamIds = array_map('intval', $rawExams);
+        } elseif (!empty($rawExams)) {
+            $selectedExamIds = array_map('intval', explode(',', (string) $rawExams));
+        }
+
+        $selectedExams = [];
+        if (!empty($selectedExamIds)) {
+            foreach ($allClassExams as $ex) {
+                if (in_array((int) $ex['id'], $selectedExamIds, true)) {
+                    $selectedExams[] = $ex;
+                }
+            }
+        } else {
+            // Default: include all exams for this class
+            $selectedExams = $allClassExams;
+        }
+
+        if (empty($selectedExams)) {
+            Session::flash('error', 'No examinations found for this class to generate report.');
+            Response::redirect('/results');
+            return;
+        }
+
+        // Fetch enrolled students
+        $students = Student::getByClass($classId);
+
+        // Pre-fetch marks for each selected exam
+        $examMarksMap = [];
+        $totalMaxMarks = 0.0;
+        foreach ($selectedExams as $ex) {
+            $eId = (int) $ex['id'];
+            $totalMaxMarks += (float) ($ex['max_marks'] ?? 100);
+            $existingMarks = Mark::getByExam($eId);
+            $examMarksMap[$eId] = [];
+            foreach ($existingMarks as $m) {
+                $examMarksMap[$eId][(int) $m['student_id']] = $m;
+            }
+        }
+
+        // Build student rows
+        $studentMatrix = [];
+        $examTotals = [];
+        foreach ($selectedExams as $ex) {
+            $examTotals[(int) $ex['id']] = ['sum' => 0.0, 'count' => 0];
+        }
+
+        foreach ($students as $stu) {
+            $sId = (int) $stu['id'];
+            $stuMarks = [];
+            $totalObtained = 0.0;
+            $gradedExamsCount = 0;
+
+            foreach ($selectedExams as $ex) {
+                $eId = (int) $ex['id'];
+                $mData = $examMarksMap[$eId][$sId] ?? null;
+                $stuMarks[$eId] = $mData;
+
+                if ($mData !== null && isset($mData['marks_obtained'])) {
+                    $val = (float) $mData['marks_obtained'];
+                    $totalObtained += $val;
+                    $gradedExamsCount++;
+                    $examTotals[$eId]['sum'] += $val;
+                    $examTotals[$eId]['count']++;
+                }
+            }
+
+            $overallPct = ($totalMaxMarks > 0) ? round(($totalObtained / $totalMaxMarks) * 100, 1) : 0.0;
+            $overallGrade = \App\Utils\GradeCalculator::calculateGrade($overallPct);
+
+            $studentMatrix[] = [
+                'student' => $stu,
+                'marks' => $stuMarks,
+                'total_obtained' => $totalObtained,
+                'total_max' => $totalMaxMarks,
+                'overall_pct' => $overallPct,
+                'overall_grade' => $overallGrade,
+                'graded_count' => $gradedExamsCount,
+                'is_pass' => ($overallPct >= 40.0),
+            ];
+        }
+
+        // Calculate exam averages across the class
+        $examAverages = [];
+        foreach ($selectedExams as $ex) {
+            $eId = (int) $ex['id'];
+            $cnt = $examTotals[$eId]['count'];
+            $examAverages[$eId] = ($cnt > 0) ? round($examTotals[$eId]['sum'] / $cnt, 1) : 0.0;
+        }
+
+        $teacher = Session::user();
+
+        View::render('results.print_class_matrix', [
+            'title' => "Consolidated Grade Matrix - {$class['name']} ({$class['section']})",
+            'class' => $class,
+            'classes' => $classes,
+            'allClassExams' => $allClassExams,
+            'selectedExams' => $selectedExams,
+            'students' => $studentMatrix,
+            'examAverages' => $examAverages,
+            'totalMaxMarks' => $totalMaxMarks,
+            'teacher' => $teacher,
+        ], 'print');
+    }
+
     public function bulkImport(Request $request): void
     {
         $teacherId = Session::userId();
