@@ -9,13 +9,15 @@ class Session
     public static function start(): void
     {
         if (session_status() === PHP_SESSION_NONE) {
-            session_set_cookie_params([
-                'lifetime' => 86400 * 7, // 7 days
-                'path' => '/',
-                'httponly' => true,
-                'samesite' => 'Lax'
-            ]);
-            session_start();
+            if (!headers_sent()) {
+                session_set_cookie_params([
+                    'lifetime' => 86400 * 7, // 7 days
+                    'path' => '/',
+                    'httponly' => true,
+                    'samesite' => 'Lax'
+                ]);
+            }
+            @session_start();
         }
     }
 
@@ -69,7 +71,28 @@ class Session
             'email' => $user['email'],
             'role' => $user['role'] ?? 'teacher',
             'school_name' => $user['school_name'] ?? 'Class Aid School',
+            'status' => $user['status'] ?? 'active',
+            'phone' => $user['phone'] ?? null,
+            'avatar' => $user['avatar'] ?? null,
+            'created_at' => $user['created_at'] ?? null,
         ]);
+    }
+
+    public static function refreshAuthUser(): void
+    {
+        $id = self::userId();
+        if ($id) {
+            $fresh = \App\Models\User::findById($id);
+            if ($fresh) {
+                self::setAuthUser($fresh);
+            }
+        }
+    }
+
+    public static function isSuperAdmin(): bool
+    {
+        $u = self::user();
+        return ($u['role'] ?? '') === 'super_admin';
     }
 
     public static function user(): ?array

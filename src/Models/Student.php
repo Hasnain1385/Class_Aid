@@ -79,6 +79,8 @@ class Student
     {
         $pdo = Database::getConnection();
         $term = '%' . trim($term) . '%';
+        $isMysql = ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql');
+        $concatExpr = $isMysql ? "CONCAT(s.first_name, ' ', s.last_name)" : "(s.first_name || ' ' || s.last_name)";
 
         $sql = "
             SELECT s.*, c.name as class_name, c.section as class_section
@@ -88,7 +90,7 @@ class Student
                 s.student_admin_id LIKE :term1 
                 OR s.first_name LIKE :term2 
                 OR s.last_name LIKE :term3 
-                OR (s.first_name || ' ' || s.last_name) LIKE :term4
+                OR {$concatExpr} LIKE :term4
                 OR s.primary_phone LIKE :term5
             )
         ";

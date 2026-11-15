@@ -42,15 +42,17 @@ class InstallController
     public function processInstall(Request $request): void
     {
         $dbType = $request->input('db_type', 'sqlite');
-        $teacherName = trim((string) $request->input('teacher_name'));
+        $adminName = trim((string) ($request->input('admin_name') ?: $request->input('teacher_name')));
         $email = strtolower(trim((string) $request->input('email')));
         $password = (string) $request->input('password');
-        $schoolName = trim((string) $request->input('school_name', 'Springdale Academy'));
+        $schoolName = trim((string) $request->input('school_name', 'Class Aid Academy'));
+        $phone = trim((string) $request->input('phone', '0300-1234567'));
         $seedDemo = (bool) $request->input('seed_demo', false);
 
-        if (empty($teacherName) || empty($email) || empty($password)) {
-            Session::flash('error', 'Please fill in all required teacher fields.');
+        if (empty($adminName) || empty($email) || empty($password)) {
+            Session::flash('error', 'Please fill in Super Admin Name, Email, and Password.');
             Response::redirect('/install');
+            return;
         }
 
         // Prepare .env values
@@ -64,6 +66,18 @@ class InstallController
             'DB_CONNECTION' => $dbType,
         ];
 
+        // Optional SMTP credentials
+        $mailHost = trim((string) $request->input('mail_host', ''));
+        if (!empty($mailHost)) {
+            $envData['MAIL_HOST'] = $mailHost;
+            $envData['MAIL_PORT'] = trim((string) $request->input('mail_port', '587'));
+            $envData['MAIL_USERNAME'] = trim((string) $request->input('mail_username', ''));
+            $envData['MAIL_PASSWORD'] = (string) $request->input('mail_password', '');
+            $envData['MAIL_ENCRYPTION'] = 'tls';
+            $envData['MAIL_FROM_ADDRESS'] = $email;
+            $envData['MAIL_FROM_NAME'] = $adminName . ' (Class Aid)';
+        }
+
         if ($dbType === 'sqlite') {
             $dbPath = 'database/database.sqlite';
             $envData['DB_DATABASE'] = $dbPath;
@@ -71,6 +85,7 @@ class InstallController
             if (!$test['success']) {
                 Session::flash('error', 'SQLite Error: ' . $test['message']);
                 Response::redirect('/install');
+                return;
             }
         } else {
             $host = trim((string) $request->input('mysql_host', '127.0.0.1'));
@@ -90,6 +105,7 @@ class InstallController
             if (!$test['success']) {
                 Session::flash('error', 'MySQL Connection Failed: ' . $test['message']);
                 Response::redirect('/install');
+                return;
             }
 
             $envData['DB_HOST'] = $host;
@@ -110,28 +126,50 @@ class InstallController
         } catch (\Exception $e) {
             Session::flash('error', 'Migration Error: ' . $e->getMessage());
             Response::redirect('/install');
+            return;
         }
 
-        // Create initial Teacher User
-        $teacherId = User::create([
-            'name' => $teacherName,
+        // Create Master Super Administrator Account
+        $adminId = User::create([
+            'name' => $adminName,
             'email' => $email,
             'password' => $password,
-            'role' => 'teacher',
+            'role' => 'super_admin',
             'school_name' => $schoolName,
+            'phone' => $phone,
+            'status' => 'active',
         ]);
 
+        // Ensure SaaS core plans and payment methods are seeded
+        try {
+            \App\Models\Plan::ensureTableAndSeed();
+            \App\Models\PaymentMethod::ensureTableAndSeed();
+            
+            // If admin specified mobile/phone, update the default EasyPaisa method
+            $ep = \App\Models\PaymentMethod::findByCode('easypaisa');
+            if ($ep && !empty($phone)) {
+                \App\Models\PaymentMethod::update((int) $ep['id'], [
+                    'account_title' => $adminName,
+                    'account_number' => $phone,
+                    'qr_payload' => '00020101021126580014pk.easypaisa.app0111' . preg_replace('/\D/', '', $phone) . '5204599953035865802PK5918' . $adminName,
+                    'instructions' => "1. Open EasyPaisa App\n2. Scan QR Code or Send to Mobile: {$phone}\n3. Account Title: {$adminName}\n4. Enter Transaction ID (TRX ID) to verify.",
+                ]);
+            }
+        } catch (\Throwable $ignored) {
+            // Keep going if already seeded
+        }
+
         // Seed initial classes or demo dataset
-        $this->seedInitialData($teacherId, $seedDemo);
+        $this->seedInitialData($adminId, $seedDemo);
 
         // Auto login
-        $user = User::findById($teacherId);
+        $user = User::findById($adminId);
         if ($user) {
             Session::setAuthUser($user);
         }
 
-        Session::flash('success', 'Class Aid has been successfully initialized! Welcome to your digital teaching assistant.');
-        Response::redirect('/dashboard');
+        Session::flash('success', "Welcome Super Administrator {$adminName}! Class Aid has been initialized successfully.");
+        Response::redirect('/admin');
     }
 
     private function seedInitialData(int $teacherId, bool $seedDemo): void

@@ -24,6 +24,13 @@ class Attendance
         return $stmt->fetchAll();
     }
 
+    public static function record(int $studentId, int $classId, string $date, string $status, ?string $remarks = null): bool
+    {
+        return self::recordBatch($classId, $date, [
+            $studentId => ['status' => $status, 'remarks' => $remarks]
+        ]);
+    }
+
     public static function recordBatch(int $classId, string $date, array $records): bool
     {
         $pdo = Database::getConnection();

@@ -58,8 +58,8 @@ class Router
             }
 
             if (preg_match($route['pattern'], $path, $matches)) {
-                // Filter string keys for named parameters
-                $params = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+                // Filter string keys for parameters and convert to positional array
+                $params = array_values(array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY));
 
                 // Run middleware (e.g. auth check)
                 if (in_array('auth', $route['middleware'], true)) {
@@ -67,10 +67,47 @@ class Router
                         Session::flash('error', 'Please sign in to access this page.');
                         Response::redirect('/login');
                     }
+
+                    // Paywall & Subscription Verification Gate (for Teachers)
+                    if (!Session::isSuperAdmin()) {
+                        $exemptPrefixes = [
+                            '/subscription',
+                            '/profile',
+                            '/logout'
+                        ];
+
+                        $isExempt = false;
+                        foreach ($exemptPrefixes as $ep) {
+                            if ($path === $ep || str_starts_with($path, $ep . '/')) {
+                                $isExempt = true;
+                                break;
+                            }
+                        }
+
+                        if (!$isExempt) {
+                            $userId = (int) Session::userId();
+                            if (!\App\Models\Subscription::isUserUnlocked($userId)) {
+                                Session::flash('warning', 'Payment verification required. Your workspace features are locked until your subscription is active.');
+                                Response::redirect('/subscription/paywall');
+                            }
+                        }
+                    }
                 }
 
                 if (in_array('guest', $route['middleware'], true)) {
                     if (Session::check()) {
+                        Response::redirect(Session::isSuperAdmin() ? '/admin' : '/dashboard');
+                    }
+                }
+
+                // Super Admin check
+                if (in_array('super_admin', $route['middleware'], true)) {
+                    if (!Session::check()) {
+                        Session::flash('error', 'Please sign in with administrator credentials.');
+                        Response::redirect('/login');
+                    }
+                    if (!Session::isSuperAdmin()) {
+                        Session::flash('error', 'Access denied. Administrator privileges required.');
                         Response::redirect('/dashboard');
                     }
                 }
@@ -78,21 +115,31 @@ class Router
                 // If POST and csrf validation is requested
                 if ($method === 'POST' && !in_array('no_csrf', $route['middleware'], true)) {
                     if (!$request->validateCsrf()) {
+                        if ($request->isJson()) {
+                            Response::json([
+                                'success' => false,
+                                'message' => 'Invalid or expired security token (CSRF). Please refresh the page and try again.',
+                            ], 403);
+                            return;
+                        }
                         Session::flash('error', 'Invalid security token (CSRF). Please try again.');
                         Response::redirect($path);
+                        return;
                     }
                 }
 
+                $args = array_merge([$request], $params);
+
                 $handler = $route['handler'];
                 if (is_callable($handler)) {
-                    call_user_func_array($handler, array_merge([$request], $params));
+                    call_user_func_array($handler, $args);
                     return;
                 }
 
                 if (is_array($handler) && count($handler) === 2) {
                     [$class, $action] = $handler;
                     $controller = new $class();
-                    call_user_func_array([$controller, $action], array_merge([$request], $params));
+                    call_user_func_array([$controller, $action], $args);
                     return;
                 }
             }

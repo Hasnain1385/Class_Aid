@@ -101,12 +101,13 @@ class CallLogController
     {
         $logId = (int) $id;
         $log = ParentCallLog::findById($logId);
-        if ($log) {
+        if ($log && ((int)($log['teacher_id'] ?? 0) === (int)Session::userId() || Session::isSuperAdmin())) {
             $newStatus = ($log['status'] === 'Resolved') ? 'Pending Follow-up' : 'Resolved';
             ParentCallLog::updateStatus($logId, $newStatus);
             Session::flash('success', "Follow-up marked as {$newStatus}.");
         }
-        Response::redirect($request->query('redirect', '/calls'));
+        $redirectUrl = (string) $request->input('redirect', $request->query('redirect', '/calls'));
+        Response::redirect($redirectUrl);
     }
 
     public function exportCsv(Request $request): void

@@ -1,0 +1,76 @@
+<?php
+
+declare(strict_types=1);
+
+// Class Aid - CLI In-Place Updater Tool
+$baseDir = __DIR__;
+
+require_once $baseDir . '/vendor/autoload.php';
+
+use App\Core\Config;
+use App\Services\UpdateService;
+
+Config::load($baseDir);
+
+$action = $argv[1] ?? '--check';
+
+echo "\n\033[1;35m=====================================================\033[0m\n";
+echo "\033[1;37m   CLASS AID — IN-PLACE UPDATE UTILITY (CLI)        \033[0m\n";
+echo "\033[1;35m=====================================================\033[0m\n\n";
+
+$info = UpdateService::getCurrentVersionInfo();
+echo "  • Installed Version : \033[1;36mv{$info['version']}\033[0m\n";
+echo "  • Target Repository : \033[1;33m{$info['github_repo']}\033[0m\n";
+echo "  • Target Branch     : \033[1;33m{$info['github_branch']}\033[0m\n\n";
+
+if ($action === '--check' || $action === '-c' || $action === 'check') {
+    echo "Checking GitHub for updates...\n";
+    $res = UpdateService::checkForUpdates(true);
+
+    if (!empty($res['has_update'])) {
+        echo "  \033[1;32m[UPDATE AVAILABLE]\033[0m Latest version: \033[1;32mv{$res['latest_version']}\033[0m\n";
+        echo "  • Title: {$res['release_name']}\n";
+        echo "  • Published: {$res['published_at']}\n";
+        echo "  • Run '\033[1;37mphp update.php --apply\033[0m' to perform in-place update.\n\n";
+    } else {
+        echo "  \033[1;32m[OK]\033[0m Your Class Aid installation is up to date! (v{$info['version']})\n\n";
+    }
+    exit(0);
+}
+
+if ($action === '--backup' || $action === '-b' || $action === 'backup') {
+    echo "Creating safety backup snapshot...\n";
+    $bk = UpdateService::createBackup('CLI Manual Backup');
+    echo "  \033[1;32m[OK]\033[0m Backup created: {$bk['filename']} (" . number_format($bk['size'] / 1024, 1) . " KB)\n\n";
+    exit(0);
+}
+
+if ($action === '--apply' || $action === '-a' || $action === 'apply') {
+    echo "\033[1;33mProceeding with automated in-place update...\033[0m\n";
+    $zipArg = $argv[2] ?? null;
+    $res = UpdateService::applyUpdate($zipArg);
+
+    if (!empty($res['steps'])) {
+        foreach ($res['steps'] as $s) {
+            echo "  [{$s['time']}] {$s['message']}\n";
+        }
+    }
+
+    if (!empty($res['success'])) {
+        echo "\n\033[1;32m[OK] Updated to v{$res['new_version']} cleanly.\033[0m\n";
+        echo "  • Safety snapshot: {$res['backup']}\n\n";
+        exit(0);
+    } else {
+        echo "\n\033[1;31m[ERROR] Update failed: {$res['error']}\033[0m\n";
+        if (!empty($res['rolled_back'])) {
+            echo "  \033[1;33mNotice: System automatically rolled back to previous state.\033[0m\n";
+        }
+        echo "\n";
+        exit(1);
+    }
+}
+
+echo "Usage:\n";
+echo "  php update.php --check    Check GitHub for newer releases\n";
+echo "  php update.php --apply    Perform automated in-place update\n";
+echo "  php update.php --backup   Create a manual code & database backup\n\n";

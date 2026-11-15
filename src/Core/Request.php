@@ -11,22 +11,27 @@ class Request
     private array $queryParams;
     private array $postParams;
     private array $server;
+    private array $files;
 
     public function __construct()
     {
-        $this->method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $rawMethod = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+        $this->method = ($rawMethod === 'HEAD') ? 'GET' : $rawMethod;
         $this->server = $_SERVER;
         $this->queryParams = $_GET;
         $this->postParams = $_POST;
+        $this->files = $_FILES;
 
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
         $path = parse_url($uri, PHP_URL_PATH) ?? '/';
 
-        // Strip subfolder if app is served from subfolder
+        // Strip subfolder only if app is served from a subfolder ending in index.php
         $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $scriptDir = dirname($scriptName);
-        if ($scriptDir !== '/' && str_starts_with($path, $scriptDir)) {
-            $path = substr($path, strlen($scriptDir));
+        if (str_ends_with($scriptName, 'index.php')) {
+            $scriptDir = rtrim(dirname($scriptName), '/\\');
+            if (!empty($scriptDir) && $scriptDir !== '/' && $scriptDir !== '.' && str_starts_with($path, $scriptDir)) {
+                $path = substr($path, strlen($scriptDir));
+            }
         }
 
         $this->path = '/' . trim($path, '/');
@@ -48,6 +53,16 @@ class Request
     public function isGet(): bool
     {
         return $this->method === 'GET';
+    }
+
+    public function isJson(): bool
+    {
+        $accept = (string) ($this->server['HTTP_ACCEPT'] ?? '');
+        $contentType = (string) ($this->server['CONTENT_TYPE'] ?? '');
+        $requestedWith = (string) ($this->server['HTTP_X_REQUESTED_WITH'] ?? '');
+        return str_contains($accept, 'application/json') 
+            || str_contains($contentType, 'application/json') 
+            || strtolower($requestedWith) === 'xmlhttprequest';
     }
 
     public function getPath(): string
@@ -85,6 +100,21 @@ class Request
             }
         }
         return [];
+    }
+
+    public function file(string $key): ?array
+    {
+        return isset($this->files[$key]) && !empty($this->files[$key]['name']) ? $this->files[$key] : null;
+    }
+
+    public function hasFile(string $key): bool
+    {
+        return isset($this->files[$key]) && is_array($this->files[$key]) && !empty($this->files[$key]['tmp_name']) && $this->files[$key]['error'] === UPLOAD_ERR_OK;
+    }
+
+    public function files(): array
+    {
+        return $this->files;
     }
 
     public function validateCsrf(): bool

@@ -12,37 +12,44 @@ class ParentCallLog
     public const CATEGORIES = [
         'Absenteeism' => [
             'label' => 'Absenteeism / Truancy',
-            'badge' => 'bg-rose-500/20 text-rose-300 border-rose-500/40',
+            'badge' => 'badge-rose',
+            'dot' => 'bg-rose-500',
             'color' => '#f43f5e',
         ],
         'Discipline' => [
             'label' => 'Discipline / Behavior',
-            'badge' => 'bg-orange-500/20 text-orange-300 border-orange-500/40',
-            'color' => '#f97316',
+            'badge' => 'badge-amber',
+            'dot' => 'bg-amber-500',
+            'color' => '#f59e0b',
         ],
         'Homework' => [
             'label' => 'Homework / Assignments',
-            'badge' => 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-            'color' => '#f59e0b',
+            'badge' => 'badge-sky',
+            'dot' => 'bg-sky-500',
+            'color' => '#0284c7',
         ],
         'Academics' => [
             'label' => 'Exam / Test Marks',
-            'badge' => 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-            'color' => '#3b82f6',
+            'badge' => 'badge-indigo',
+            'dot' => 'bg-indigo-500',
+            'color' => '#6366f1',
         ],
         'Health' => [
             'label' => 'Health / Medical',
-            'badge' => 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+            'badge' => 'badge-emerald',
+            'dot' => 'bg-emerald-500',
             'color' => '#10b981',
         ],
         'Appreciation' => [
             'label' => 'Appreciation / Praise',
-            'badge' => 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+            'badge' => 'badge-violet',
+            'dot' => 'bg-violet-500',
             'color' => '#a855f7',
         ],
         'General' => [
             'label' => 'General / Administration',
-            'badge' => 'bg-slate-500/20 text-slate-300 border-slate-500/40',
+            'badge' => 'border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300',
+            'dot' => 'bg-slate-500',
             'color' => '#64748b',
         ],
     ];
@@ -51,14 +58,24 @@ class ParentCallLog
     {
         return self::CATEGORIES[$category] ?? [
             'label' => $category,
-            'badge' => 'bg-gray-500/20 text-gray-300 border-gray-500/40',
-            'color' => '#6b7280',
+            'badge' => 'badge-indigo',
+            'dot' => 'bg-indigo-500',
+            'color' => '#6366f1',
         ];
     }
 
     public static function getCategoryBadgeClass(string $category): string
     {
         return self::getBadgeInfo($category)['badge'];
+    }
+
+    public static function renderPill(string $category): string
+    {
+        $info = self::getBadgeInfo($category);
+        $dotClass = $info['dot'] ?? 'bg-slate-400';
+        $badgeClass = $info['badge'] ?? 'badge-indigo';
+        $label = htmlspecialchars($category, ENT_QUOTES, 'UTF-8');
+        return '<span class="status-pill ' . $badgeClass . '"><span class="status-dot ' . $dotClass . '"></span>' . $label . '</span>';
     }
 
     public static function create(array $data): int

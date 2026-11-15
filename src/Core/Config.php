@@ -20,6 +20,7 @@ class Config
         self::$settings = [
             'BASE_DIR' => $baseDir,
             'APP_NAME' => 'Class Aid',
+            'APP_VERSION' => '1.0.0',
             'APP_ENV' => 'production',
             'APP_KEY' => '',
             'APP_DEBUG' => false,
@@ -32,7 +33,22 @@ class Config
             'DB_NAME' => 'class_aid',
             'DB_USER' => 'root',
             'DB_PASSWORD' => '',
+            'GITHUB_REPO' => 'class-aid/class-aid',
+            'GITHUB_BRANCH' => 'main',
+            'GITHUB_TOKEN' => '',
         ];
+
+        // Load version from version.json if present
+        $versionFile = rtrim($baseDir, '/') . '/version.json';
+        if (file_exists($versionFile)) {
+            $verData = json_decode((string) file_get_contents($versionFile), true);
+            if (is_array($verData) && !empty($verData['version'])) {
+                self::$settings['APP_VERSION'] = (string) $verData['version'];
+                if (!empty($verData['github_repo'])) {
+                    self::$settings['GITHUB_REPO'] = (string) $verData['github_repo'];
+                }
+            }
+        }
 
         if (file_exists(self::$envPath)) {
             $lines = file(self::$envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -79,21 +95,34 @@ class Config
 
     public static function isInstalled(): bool
     {
-        return (bool) self::get('APP_INSTALLED', false) && file_exists(self::$envPath);
+        if (!self::get('APP_INSTALLED', false) || !file_exists(self::$envPath)) {
+            return false;
+        }
+
+        try {
+            $pdo = Database::getConnection();
+            $count = (int) $pdo->query("SELECT count(*) FROM users")->fetchColumn();
+            return $count > 0;
+        } catch (\Throwable) {
+            return false;
+        }
     }
 
     public static function writeEnv(array $data): bool
     {
+        $merged = array_merge(self::$settings, $data);
+        unset($merged['BASE_DIR']);
+
         $content = "# Class Aid Configuration File\n";
         $content .= "# Generated: " . date('Y-m-d H:i:s') . "\n\n";
 
-        foreach ($data as $k => $v) {
+        foreach ($merged as $k => $v) {
             self::$settings[$k] = $v;
             if (is_bool($v)) {
                 $valStr = $v ? 'true' : 'false';
             } elseif (is_null($v)) {
-                $valStr = 'null';
-            } elseif (str_contains((string) $v, ' ') || str_contains((string) $v, '#')) {
+                $valStr = '';
+            } elseif (str_contains((string) $v, ' ') || str_contains((string) $v, '#') || str_contains((string) $v, '=')) {
                 $valStr = '"' . addcslashes((string) $v, '"') . '"';
             } else {
                 $valStr = (string) $v;

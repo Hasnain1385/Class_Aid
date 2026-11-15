@@ -23,10 +23,29 @@ class View
         // Helper closures available inside templates
         $e = fn(?string $val): string => htmlspecialchars((string) $val, ENT_QUOTES, 'UTF-8');
         $csrf = fn(): string => Csrf::field();
-        $user = Session::user();
+        $csrfToken = fn(): string => Csrf::getToken();
+        $authUser = Session::user();
+        if (!isset($user)) {
+            $user = $authUser;
+        }
         $flashSuccess = Session::flash('success');
         $flashError = Session::flash('error');
         $flashWarning = Session::flash('warning');
+
+        // Global SaaS data for layouts
+        $activeAnnouncements = [];
+        $userSubscription = null;
+        $pendingRemindersCount = 0;
+        $pendingRemindersList = [];
+
+        if (Session::check() && $authUser) {
+            $activeAnnouncements = \App\Models\Announcement::getAllPublished($authUser['role'] ?? 'teacher');
+            if (($authUser['role'] ?? '') === 'teacher') {
+                $userSubscription = \App\Models\Subscription::getActiveForUser((int) $authUser['id']);
+                $pendingRemindersCount = \App\Models\Reminder::countPending((int) $authUser['id']);
+                $pendingRemindersList = \App\Models\Reminder::getPending((int) $authUser['id'], 5);
+            }
+        }
 
         // Capture view content
         ob_start();

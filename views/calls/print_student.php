@@ -7,7 +7,7 @@
         </div>
         <div class="text-right text-xs">
             <div><strong>Generated:</strong> <?= date('F d, Y - H:i') ?></div>
-            <div><strong>Class Teacher:</strong> <?= $e($teacher['name']) ?></div>
+            <div><strong>Class Teacher:</strong> <?= $e($teacher['name'] ?? 'Class Teacher') ?></div>
         </div>
     </div>
 
@@ -78,7 +78,7 @@
     <div class="pt-10 border-t border-gray-300 grid grid-cols-2 gap-8 text-xs text-gray-600 mt-12">
         <div>
             <div class="border-b border-gray-400 pb-8 mb-1"></div>
-            <span>Class Teacher Signature: <strong><?= $e($teacher['name']) ?></strong></span>
+            <span>Class Teacher Signature: <strong><?= $e($teacher['name'] ?? 'Class Teacher') ?></strong></span>
         </div>
         <div>
             <div class="border-b border-gray-400 pb-8 mb-1"></div>

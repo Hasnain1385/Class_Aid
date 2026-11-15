@@ -27,7 +27,7 @@
         </div>
         <div>
             <span class="text-gray-500 uppercase block font-semibold text-[10px]">Class Teacher</span>
-            <span class="font-bold text-gray-900"><?= $e($teacher['name']) ?></span>
+            <span class="font-bold text-gray-900"><?= $e($teacher['name'] ?? 'Class Teacher') ?></span>
         </div>
     </div>
 
@@ -133,7 +133,7 @@
     <div class="pt-8 border-t border-gray-300 grid grid-cols-3 gap-8 text-xs text-gray-600 mt-10">
         <div>
             <div class="border-b border-gray-400 pb-8 mb-1"></div>
-            <span>Class Teacher Signature: <strong><?= $e($teacher['name']) ?></strong></span>
+            <span>Class Teacher Signature: <strong><?= $e($teacher['name'] ?? 'Class Teacher') ?></strong></span>
         </div>
         <div>
             <div class="border-b border-gray-400 pb-8 mb-1"></div>

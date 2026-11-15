@@ -8,12 +8,33 @@
 /database/*.sqlite
 /database/*.sqlite-journal
 
-# Logs
+# Logs & Storage
 /logs/
 *.log
+/storage/backups/*
+!/storage/backups/.gitkeep
+/storage/updates/*
+!/storage/updates/.gitkeep
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/framework/*
+!/storage/framework/.gitkeep
+/storage/*
+!/storage/backups/
+!/storage/updates/
+!/storage/logs/
+!/storage/framework/
+!/storage/.gitkeep
+
+# Uploads
+/public/uploads/receipts/*
+/public/uploads/avatars/*
+/public/uploads/qr/*
+!/public/uploads/.gitkeep
 
 # OS / Editor
 .DS_Store
 Thumbs.db
 .vscode/
 .idea/
+

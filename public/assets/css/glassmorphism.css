@@ -1,86 +1,499 @@
-/* Glassmorphism Design System for Class Aid */
+/* ==========================================================================
+   Class Aid — Liquid Glass Design System & Theme Engine
+   Apple VisionOS / macOS / Linear-inspired Frosted Glassmorphism
+   High-contrast, razor-sharp typography, seamless Dark & Light modes.
+   ========================================================================== */
 
 :root {
-    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-               radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.12) 0px, transparent 50%),
-               radial-gradient(at 50% 100%, rgba(20, 184, 166, 0.15) 0px, transparent 50%);
-    --body-bg: #f8fafc;
+    /* Base Surfaces */
+    --bg-page: #f8fafc;
+    --ambient-mesh-1: rgba(99, 102, 241, 0.06);
+    --ambient-mesh-2: rgba(14, 165, 233, 0.04);
+    --ambient-mesh-3: rgba(168, 85, 247, 0.04);
+
+    /* Liquid Glass Cards */
+    --card-bg: rgba(255, 255, 255, 0.88);
+    --card-bg-subtle: rgba(248, 250, 252, 0.85);
+    --card-border: rgba(226, 232, 240, 0.9);
+    --card-border-hover: rgba(199, 210, 254, 0.95);
+    --card-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 1px 3px 0 rgba(15, 23, 42, 0.02);
+    --card-shadow-hover: 0 12px 30px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+    --card-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+    --card-specular-hover: inset 0 1px 1.5px 0 #ffffff;
+    --glass-blur: blur(20px) saturate(190%);
+
+    /* Header & Navigation Bar Glass */
+    --nav-glass-bg: rgba(255, 255, 255, 0.9);
+    --nav-glass-border: rgba(226, 232, 240, 0.85);
+
+    /* High-Contrast Typography */
     --text-primary: #0f172a;
+    --text-secondary: #334155;
     --text-muted: #64748b;
-    --glass-bg: rgba(255, 255, 255, 0.75);
-    --glass-bg-subtle: rgba(255, 255, 255, 0.55);
-    --glass-border: rgba(255, 255, 255, 0.6);
-    --glass-border-focus: rgba(99, 102, 241, 0.5);
-    --glass-shadow: 0 10px 30px 0 rgba(31, 38, 135, 0.07);
-    --glass-blur: blur(16px);
-    --card-hover: rgba(255, 255, 255, 0.9);
+    --text-subtle: #94a3b8;
+
+    /* Form Controls */
+    --input-bg: #ffffff;
+    --input-border: #cbd5e1;
+    --input-border-hover: #94a3b8;
+    --input-focus: #4f46e5;
+    --input-focus-ring: rgba(79, 70, 229, 0.18);
+
+    /* Skeleton Ladders (Light) */
+    --skeleton-base: #e2e8f0;
+    --skeleton-shimmer: #f1f5f9;
+
+    /* Brand Accents */
+    --accent-primary: #4f46e5;
+    --accent-hover: #4338ca;
 }
 
 .dark {
-    --bg-mesh: radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.22) 0px, transparent 50%),
-               radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.18) 0px, transparent 50%),
-               radial-gradient(at 50% 100%, rgba(14, 165, 233, 0.2) 0px, transparent 50%);
-    --body-bg: #0b0f19;
+    /* Base Surfaces */
+    --bg-page: #090d16;
+    --ambient-mesh-1: rgba(99, 102, 241, 0.12);
+    --ambient-mesh-2: rgba(56, 189, 248, 0.08);
+    --ambient-mesh-3: rgba(168, 85, 247, 0.08);
+
+    /* Liquid Glass Cards */
+    --card-bg: rgba(15, 23, 42, 0.75);
+    --card-bg-subtle: rgba(15, 23, 42, 0.5);
+    --card-border: rgba(255, 255, 255, 0.09);
+    --card-border-hover: rgba(255, 255, 255, 0.22);
+    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), 0 2px 6px 0 rgba(0, 0, 0, 0.2);
+    --card-shadow-hover: 0 16px 40px -4px rgba(0, 0, 0, 0.6), 0 4px 12px 0 rgba(0, 0, 0, 0.35);
+    --card-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
+    --card-specular-hover: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
+    --glass-blur: blur(24px) saturate(200%);
+
+    /* Header & Navigation Bar Glass */
+    --nav-glass-bg: rgba(10, 15, 29, 0.9);
+    --nav-glass-border: rgba(255, 255, 255, 0.08);
+
+    /* High-Contrast Typography */
     --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
     --text-muted: #94a3b8;
-    --glass-bg: rgba(17, 24, 39, 0.72);
-    --glass-bg-subtle: rgba(17, 24, 39, 0.5);
-    --glass-border: rgba(255, 255, 255, 0.1);
-    --glass-border-focus: rgba(129, 140, 248, 0.6);
-    --glass-shadow: 0 12px 35px 0 rgba(0, 0, 0, 0.45);
-    --glass-blur: blur(20px);
-    --card-hover: rgba(30, 41, 59, 0.85);
+    --text-subtle: #64748b;
+
+    /* Form Controls */
+    --input-bg: rgba(15, 23, 42, 0.92);
+    --input-border: rgba(255, 255, 255, 0.16);
+    --input-border-hover: rgba(255, 255, 255, 0.35);
+    --input-focus: #6366f1;
+    --input-focus-ring: rgba(99, 102, 241, 0.35);
+
+    /* Skeleton Ladders (Dark) */
+    --skeleton-base: rgba(255, 255, 255, 0.06);
+    --skeleton-shimmer: rgba(255, 255, 255, 0.13);
+
+    /* Brand Accents */
+    --accent-primary: #6366f1;
+    --accent-hover: #4f46e5;
 }
 
+/* ==========================================================================
+   Global Body & Ambient Background Mesh
+   ========================================================================== */
 body {
-    background-color: var(--body-bg);
-    background-image: var(--bg-mesh);
+    background-color: var(--bg-page);
+    background-image: 
+        radial-gradient(at 0% 0%, var(--ambient-mesh-1) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, var(--ambient-mesh-2) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, var(--ambient-mesh-3) 0px, transparent 50%);
     background-attachment: fixed;
     color: var(--text-primary);
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.glass-card {
-    background: var(--glass-bg);
+/* Zero theme switch flicker */
+.theme-icon-sun { display: none !important; }
+.theme-icon-moon { display: inline-block !important; }
+.dark .theme-icon-sun { display: inline-block !important; }
+.dark .theme-icon-moon { display: none !important; }
+
+/* ==========================================================================
+   Liquid Glass Cards & Containers
+   ========================================================================== */
+.glass-card, 
+.pro-card, 
+.liquid-card {
+    background: var(--card-bg);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow), var(--card-specular);
     border-radius: 1rem;
-    transition: all 0.25s ease-in-out;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.glass-card-hover:hover {
-    background: var(--card-hover);
-    border-color: var(--glass-border-focus);
-    transform: translateY(-2px);
+.glass-card-hover:hover, 
+.pro-card-hover:hover,
+.liquid-card-hover:hover {
+    border-color: var(--card-border-hover);
+    box-shadow: var(--card-shadow-hover), var(--card-specular-hover);
+    transform: translateY(-1px);
 }
 
-.glass-input {
-    background: var(--glass-bg-subtle);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: blur(8px);
-    color: var(--text-primary);
+.glass-panel {
+    background: var(--card-bg-subtle);
+    border: 1px solid var(--card-border);
     border-radius: 0.75rem;
-    transition: all 0.2s ease;
 }
 
-.glass-input:focus {
+/* Navigation Header Liquid Glass */
+.liquid-header {
+    background: var(--nav-glass-bg) !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-bottom: 1px solid var(--nav-glass-border) !important;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+/* ==========================================================================
+   Form Controls & Dropdowns (High-Contrast & Liquid)
+   ========================================================================== */
+.glass-input, 
+.pro-input,
+input.glass-input,
+textarea.glass-input,
+select.glass-input {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    color: var(--text-primary) !important;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding: 0.5rem 0.875rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.glass-input:hover, 
+.pro-input:hover,
+input.glass-input:hover,
+textarea.glass-input:hover,
+select.glass-input:hover {
+    border-color: var(--input-border-hover) !important;
+}
+
+.glass-input:focus, 
+.pro-input:focus,
+input.glass-input:focus,
+textarea.glass-input:focus,
+select.glass-input:focus {
     outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
 }
 
-.glass-pill {
+.glass-input::placeholder, 
+.pro-input::placeholder,
+input.glass-input::placeholder,
+textarea.glass-input::placeholder {
+    color: var(--text-subtle) !important;
+    opacity: 0.85;
+}
+
+/* Select element options contrast fix */
+select.glass-input,
+select.pro-input,
+.glass-card select {
+    background-color: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+}
+select.glass-input option,
+select.pro-input option,
+.glass-card select option {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+}
+html:not(.dark) select.glass-input option,
+html:not(.dark) select.pro-input option,
+html:not(.dark) .glass-card select option {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+/* ==========================================================================
+   Top Page Loading Progress Bar
+   ========================================================================== */
+#page-loader-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #06b6d4);
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.7), 0 0 5px rgba(236, 72, 153, 0.5);
+    z-index: 99999;
+    opacity: 0;
+    pointer-events: none;
+    transition: width 0.25s ease-out, opacity 0.2s ease-in;
+}
+#page-loader-bar.loading {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Global Frosted Page Loader Overlay
+   ========================================================================== */
+#page-loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.4);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border-radius: 9999px;
-    border-width: 1px;
+    z-index: 99998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+#page-loader-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
 }
 
-/* Custom scrollbars */
+.liquid-spinner {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid rgba(99, 102, 241, 0.2);
+    border-top-color: #6366f1;
+    border-right-color: #ec4899;
+    animation: liquid-spin 0.8s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+}
+
+@keyframes liquid-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ==========================================================================
+   Skeleton Ladders & Shimmer Engine
+   ========================================================================== */
+@keyframes skeleton-shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton,
+.skeleton-block,
+.skeleton-row,
+.skeleton-cell,
+.skeleton-pill,
+.skeleton-circle {
+    background: linear-gradient(
+        90deg, 
+        var(--skeleton-base) 25%, 
+        var(--skeleton-shimmer) 50%, 
+        var(--skeleton-base) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: 0.5rem;
+}
+
+.skeleton-circle {
+    border-radius: 9999px;
+}
+
+.skeleton-pill {
+    border-radius: 9999px;
+    height: 1.25rem;
+}
+
+/* Skeleton Ladder Container */
+.skeleton-ladder {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.skeleton-ladder-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.875rem 1rem;
+    background: var(--card-bg-subtle);
+    border: 1px solid var(--card-border);
+    border-radius: 0.75rem;
+}
+
+/* ==========================================================================
+   Refined Status Badges & Category Chips (Zero Emojis)
+   ========================================================================== */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+    border-width: 1px;
+    white-space: nowrap;
+}
+
+.status-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+}
+
+/* Palette Status Badges */
+.badge-indigo {
+    background-color: rgba(99, 102, 241, 0.12);
+    color: #4f46e5;
+    border-color: rgba(99, 102, 241, 0.3);
+}
+.dark .badge-indigo {
+    background-color: rgba(99, 102, 241, 0.18);
+    color: #a5b4fc;
+    border-color: rgba(129, 140, 248, 0.35);
+}
+
+.badge-emerald {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #059669;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+.dark .badge-emerald {
+    background-color: rgba(16, 185, 129, 0.18);
+    color: #6ee7b7;
+    border-color: rgba(52, 211, 153, 0.35);
+}
+
+.badge-amber {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #d97706;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+.dark .badge-amber {
+    background-color: rgba(245, 158, 11, 0.18);
+    color: #fcd34d;
+    border-color: rgba(251, 191, 36, 0.35);
+}
+
+.badge-rose {
+    background-color: rgba(244, 63, 94, 0.12);
+    color: #e11d48;
+    border-color: rgba(244, 63, 94, 0.3);
+}
+.dark .badge-rose {
+    background-color: rgba(244, 63, 94, 0.18);
+    color: #fda4af;
+    border-color: rgba(251, 113, 133, 0.35);
+}
+
+.badge-violet {
+    background-color: rgba(168, 85, 247, 0.12);
+    color: #7c3aed;
+    border-color: rgba(168, 85, 247, 0.3);
+}
+.dark .badge-violet {
+    background-color: rgba(168, 85, 247, 0.18);
+    color: #d8b4fe;
+    border-color: rgba(192, 132, 252, 0.35);
+}
+
+.badge-sky {
+    background-color: rgba(14, 165, 233, 0.12);
+    color: #0284c7;
+    border-color: rgba(14, 165, 233, 0.3);
+}
+.dark .badge-sky {
+    background-color: rgba(14, 165, 233, 0.18);
+    color: #7dd3fc;
+    border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* ==========================================================================
+   Liquid Buttons
+   ========================================================================== */
+.btn-liquid-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: #ffffff;
+    box-shadow: 0 2px 10px -1px rgba(79, 70, 229, 0.4), inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.btn-liquid-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px -1px rgba(79, 70, 229, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.4);
+}
+.btn-liquid-primary:active {
+    transform: translateY(0);
+}
+
+.btn-liquid-secondary {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--card-shadow), var(--card-specular);
+    backdrop-filter: var(--glass-blur);
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: all 0.15s ease;
+}
+.btn-liquid-secondary:hover {
+    border-color: var(--card-border-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--card-shadow-hover), var(--card-specular-hover);
+}
+
+/* ==========================================================================
+   Data Table Typography & Alignment
+   ========================================================================== */
+.pro-table th {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+    padding: 0.75rem 1rem;
+    white-space: nowrap;
+}
+
+.pro-table td {
+    font-size: 0.8125rem;
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--card-border);
+    color: var(--text-primary);
+    vertical-align: middle;
+}
+
+.pro-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Numeric tabular numbers */
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Custom modern scrollbars */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -89,30 +502,27 @@ body {
     background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.4);
+    background: rgba(148, 163, 184, 0.3);
     border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.7);
+    background: rgba(148, 163, 184, 0.5);
 }
 
-/* Print Stylesheet */
+/* Print Styles */
 @media print {
     body {
         background: #ffffff !important;
-        background-image: none !important;
         color: #000000 !important;
     }
-    .no-print, nav, header, footer, .bottom-nav, button {
+    .no-print, nav, header, footer, .bottom-nav, button, #page-loader-bar, #page-loader-overlay {
         display: none !important;
     }
     .print-only {
         display: block !important;
     }
-    .glass-card {
+    .glass-card, .pro-card, .liquid-card {
         background: #ffffff !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
         border: 1px solid #e2e8f0 !important;
         box-shadow: none !important;
     }

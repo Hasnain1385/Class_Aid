@@ -11,11 +11,17 @@ use App\Models\SchoolClass;
 use App\Models\Student;
 use App\Models\ParentCallLog;
 use App\Models\Attendance;
+use App\Models\Reminder;
+use App\Core\Response;
 
 class DashboardController
 {
     public function index(Request $request): void
     {
+        if (Session::isSuperAdmin()) {
+            Response::redirect('/admin');
+        }
+
         $teacherId = Session::userId();
         $classes = SchoolClass::getAllByTeacher($teacherId);
         $homeClass = SchoolClass::getHomeClass($teacherId);
@@ -28,6 +34,7 @@ class DashboardController
         $todayAttendance = Attendance::getTodayStats($teacherId);
         $pendingFollowups = ParentCallLog::getPendingFollowups($teacherId);
         $recentCalls = ParentCallLog::getRecent($teacherId, 5);
+        $reminders = Reminder::getPending($teacherId, 4);
 
         // Find students with chronic absenteeism (>= 3 consecutive absences)
         $flaggedStudents = [];
@@ -51,6 +58,7 @@ class DashboardController
             'pendingFollowups' => $pendingFollowups,
             'recentCalls' => $recentCalls,
             'flaggedStudents' => $flaggedStudents,
+            'reminders' => $reminders,
         ]);
     }
 }

@@ -1,9 +1,9 @@
 <div class="space-y-6">
     <!-- Server Requirements Checklist -->
     <div>
-        <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-2">
             <i data-lucide="check-square" class="w-4 h-4"></i>
-            <span>System Requirements</span>
+            <span>System Requirements Check</span>
         </h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             <?php foreach ($requirements as $req => $met): ?>
@@ -27,10 +27,10 @@
 
             <!-- Step 1: Database Selection -->
             <div>
-                <label class="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
-                    Select Database Engine
+                <label class="block text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-2">
+                    Step 1: Database Engine
                 </label>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <label class="relative flex flex-col p-4 rounded-xl border-2 cursor-pointer transition-all border-indigo-600 bg-indigo-50/20 dark:bg-indigo-950/20" id="card-sqlite">
                         <input type="radio" name="db_type" value="sqlite" checked class="sr-only" onchange="toggleDbFields('sqlite')">
                         <div class="flex items-center justify-between mb-1">
@@ -39,7 +39,7 @@
                             </span>
                             <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold">Recommended</span>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Zero-config, fast, saved locally to file.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Zero-configuration, ultra-fast embedded database.</p>
                     </label>
 
                     <label class="relative flex flex-col p-4 rounded-xl border cursor-pointer transition-all border-gray-200 dark:border-white/10" id="card-mysql">
@@ -49,7 +49,7 @@
                                 <i data-lucide="server" class="w-4 h-4 text-emerald-500"></i> MySQL / MariaDB
                             </span>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">Multi-user or cPanel/live hosting deployment.</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Live hosting, cPanel or dedicated MySQL server.</p>
                     </label>
                 </div>
             </div>
@@ -81,67 +81,115 @@
                 </div>
             </div>
 
-            <!-- Step 2: Teacher & School Profile -->
+            <!-- Step 2: Master Super Administrator Account -->
             <div class="space-y-4 pt-2 border-t border-gray-200/50 dark:border-white/10">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <i data-lucide="user-check" class="w-4 h-4"></i>
-                    <span>Teacher Admin Account</span>
-                </h2>
+                <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-full bg-gradient-to-tr from-rose-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center shadow-md">
+                        2
+                    </span>
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
+                        Master Super Administrator Setup
+                    </h2>
+                </div>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                    This account will hold master privileges to configure EasyPaisa gateways, manage teacher workspaces, review manual payment receipts, and dispatch broadcasts.
+                </p>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Your Full Name *</label>
-                        <input type="text" name="teacher_name" value="Mr. Nain (Class Teacher)" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Super Admin Name *</label>
+                        <input type="text" name="admin_name" placeholder="e.g. Mirza Hasnain Baig" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">School / Institution Name</label>
-                        <input type="text" name="school_name" value="Springdale Public Academy" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">School / Organization Name</label>
+                        <input type="text" name="school_name" placeholder="e.g. Oakridge Academy & SaaS Hub" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address *</label>
-                        <input type="email" name="email" value="teacher@school.edu" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Email Address *</label>
+                        <input type="email" name="email" placeholder="admin@domain.com" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password *</label>
-                        <input type="password" name="password" value="teacher123" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Master Password *</label>
+                        <input type="password" name="password" minlength="6" placeholder="Choose a secure password" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">WhatsApp / EasyPaisa Mobile Number</label>
+                        <input type="text" name="phone" placeholder="e.g. 0300-1234567" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono">
+                        <span class="text-[10px] text-gray-400 mt-1 block">Used as the default EasyPaisa receiving account for student subscriptions.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Outgoing Email (SMTP) Setup (Optional) -->
+            <div class="space-y-4 pt-2 border-t border-gray-200/50 dark:border-white/10">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-md">
+                            3
+                        </span>
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
+                            SMTP Outgoing Mail Settings (Optional)
+                        </h2>
+                    </div>
+                    <span class="text-[11px] text-gray-400">Can be configured later in Admin Portal</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Host</label>
+                        <input type="text" name="mail_host" placeholder="smtp.gmail.com" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Port</label>
+                        <input type="number" name="mail_port" value="587" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Username</label>
+                        <input type="text" name="mail_username" placeholder="your_email@gmail.com" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Password / App Password</label>
+                        <input type="password" name="mail_password" placeholder="••••••••••••" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
                     </div>
                 </div>
             </div>
 
             <!-- Demo Data Checkbox -->
-            <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/5 flex items-start gap-3">
+            <div class="p-4 rounded-xl border border-indigo-500/20 bg-indigo-50/5 flex items-start gap-3">
                 <input type="checkbox" name="seed_demo" value="1" id="seed_demo" checked class="mt-1 rounded text-indigo-600 focus:ring-indigo-500">
                 <label for="seed_demo" class="cursor-pointer">
-                    <span class="block text-xs font-bold text-gray-900 dark:text-white">Seed Initial Classes & Realistic Demo Dataset</span>
+                    <span class="block text-xs font-bold text-gray-900 dark:text-white">Seed Starter Classrooms & Default EasyPaisa Gateway</span>
                     <span class="block text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                        Creates your primary Home Class (Grade 10-A with ~30 students), 4 other subject classes (Grade 9A, 9B, 11A, 12A), sample attendance records, parent call records, and exams.
+                        Creates your primary Home Class roster, subjects, and provisions the EasyPaisa & JazzCash QR gateways with your details.
                     </span>
                 </label>
             </div>
 
             <!-- Submit Button -->
-            <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-semibold text-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 group transition-all">
-                <span>Complete Installation & Launch</span>
+            <button type="submit" class="w-full py-3.5 px-4 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 group transition-all">
+                <span>Complete Setup & Launch Super Admin Portal</span>
                 <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </button>
         </form>
 
         <script>
             function toggleDbFields(type) {
-                const mysqlPanel = document.getElementById('mysql-credentials-panel');
+                const panel = document.getElementById('mysql-credentials-panel');
                 const cardSqlite = document.getElementById('card-sqlite');
                 const cardMysql = document.getElementById('card-mysql');
 
                 if (type === 'mysql') {
-                    mysqlPanel.classList.remove('hidden');
+                    panel.classList.remove('hidden');
                     cardMysql.classList.add('border-indigo-600', 'bg-indigo-50/20', 'dark:bg-indigo-950/20', 'border-2');
+                    cardMysql.classList.remove('border-gray-200', 'dark:border-white/10', 'border');
                     cardSqlite.classList.remove('border-indigo-600', 'bg-indigo-50/20', 'dark:bg-indigo-950/20', 'border-2');
-                    cardSqlite.classList.add('border-gray-200', 'dark:border-white/10');
+                    cardSqlite.classList.add('border-gray-200', 'dark:border-white/10', 'border');
                 } else {
-                    mysqlPanel.classList.add('hidden');
+                    panel.classList.add('hidden');
                     cardSqlite.classList.add('border-indigo-600', 'bg-indigo-50/20', 'dark:bg-indigo-950/20', 'border-2');
+                    cardSqlite.classList.remove('border-gray-200', 'dark:border-white/10', 'border');
                     cardMysql.classList.remove('border-indigo-600', 'bg-indigo-50/20', 'dark:bg-indigo-950/20', 'border-2');
-                    cardMysql.classList.add('border-gray-200', 'dark:border-white/10');
+                    cardMysql.classList.add('border-gray-200', 'dark:border-white/10', 'border');
                 }
             }
         </script>

@@ -1,9 +1,30 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $e($title ?? 'Class Aid Setup') ?></title>
+    <!-- Prevent flash of wrong theme -->
+    <script>
+        (function() {
+            const saved = localStorage.getItem('class_aid_theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (saved === 'dark' || (!saved && prefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        })();
+        window.toggleTheme = function(e) {
+            if (e && typeof e.preventDefault === 'function') e.preventDefault();
+            const isDark = document.documentElement.classList.toggle('dark');
+            localStorage.setItem('class_aid_theme', isDark ? 'dark' : 'light');
+            if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+                lucide.createIcons();
+            }
+            return isDark;
+        };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class' };
@@ -11,7 +32,9 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/assets/css/glassmorphism.css">
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 py-10">
+<body class="min-h-screen flex items-center justify-center p-4 py-10 text-slate-900 dark:text-slate-100 transition-colors">
+    <!-- Top Page Loading Progress Bar -->
+    <div id="page-loader-bar"></div>
     <div class="w-full max-w-2xl">
         <!-- Logo & Title -->
         <div class="text-center mb-6">
@@ -21,7 +44,7 @@
             <h1 class="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-violet-500 dark:from-indigo-400 dark:to-violet-400">
                 Class Aid Setup Wizard
             </h1>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure your environment, database, and primary teacher profile</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Configure your environment, database, and primary teacher profile</p>
         </div>
 
         <?php if ($flashError): ?>
@@ -36,7 +59,7 @@
         </div>
 
         <div class="mt-4 text-center">
-            <button type="button" class="theme-toggle text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-500 flex items-center gap-1 mx-auto">
+            <button type="button" onclick="window.toggleTheme(event)" class="theme-toggle text-xs text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 mx-auto cursor-pointer">
                 <i data-lucide="sun" class="w-3.5 h-3.5 theme-icon-sun"></i>
                 <i data-lucide="moon" class="w-3.5 h-3.5 theme-icon-moon"></i>
                 <span>Switch Theme</span>

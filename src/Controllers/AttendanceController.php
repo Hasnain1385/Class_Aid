@@ -31,9 +31,10 @@ class AttendanceController
     {
         $cId = (int) $classId;
         $class = SchoolClass::findById($cId);
-        if (!$class) {
-            Session::flash('error', 'Class not found.');
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== (int)Session::userId() && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Class not found or access denied.');
             Response::redirect('/attendance');
+            return;
         }
 
         $date = $request->query('date', date('Y-m-d'));
@@ -70,6 +71,13 @@ class AttendanceController
     public function save(Request $request, string $classId): void
     {
         $cId = (int) $classId;
+        $class = SchoolClass::findById($cId);
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== (int)Session::userId() && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Class not found or access denied.');
+            Response::redirect('/attendance');
+            return;
+        }
+
         $date = $request->input('date', date('Y-m-d'));
         $records = $request->input('attendance', []);
 
