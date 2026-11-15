@@ -222,24 +222,26 @@ function applyTheme() {
 applyTheme();
 
 window.toggleTheme = function(e) {
-    if (e && typeof e.preventDefault === 'function') {
-        e.preventDefault();
+    if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
     }
+    const now = Date.now();
+    if (window._lastThemeToggle && (now - window._lastThemeToggle) < 250) {
+        return document.documentElement.classList.contains('dark');
+    }
+    window._lastThemeToggle = now;
+
     const isDark = document.documentElement.classList.toggle('dark');
-    localStorage.setItem('class_aid_theme', isDark ? 'dark' : 'light');
+    try {
+        localStorage.setItem('class_aid_theme', isDark ? 'dark' : 'light');
+    } catch (err) {}
     if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
         lucide.createIcons();
     }
     return isDark;
 };
-
-// Global delegation for theme toggles
-document.addEventListener('click', (e) => {
-    const toggle = e.target.closest('.theme-toggle');
-    if (toggle) {
-        window.toggleTheme(e);
-    }
-});
 
 function initTheme() {
     applyTheme();

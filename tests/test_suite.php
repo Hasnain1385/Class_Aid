@@ -668,6 +668,9 @@ it('Performs in-place zip extraction, preserving protected files and updating ve
     $baseDir = UpdateService::getBaseDir();
     $tempZipPath = $baseDir . '/storage/updates/test_package_' . time() . '.zip';
 
+    // Backup original version.json
+    $originalVersionContent = file_get_contents($baseDir . '/version.json');
+
     // Create a mock update zip package with a top-level wrapper directory (simulating GitHub zipball)
     $zip = new \ZipArchive();
     $zip->open($tempZipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
@@ -717,8 +720,9 @@ it('Performs in-place zip extraction, preserving protected files and updating ve
     @unlink($markerFile);
     @unlink($tempZipPath);
 
-    // Restore version back to 1.0.0
-    UpdateService::setVersion('1.0.0', 'Class Aid v1.0.0 (Liquid Glass)');
+    // Restore original version.json exactly as it was
+    file_put_contents($baseDir . '/version.json', $originalVersionContent);
+    Config::set('APP_VERSION', '1.0.0');
 });
 
 // -------------------------------------------------------------

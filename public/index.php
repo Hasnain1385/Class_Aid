@@ -2,6 +2,38 @@
 
 declare(strict_types=1);
 
+// Built-in web server static asset handler
+$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+if ($requestUri !== null && $requestUri !== '/') {
+    $staticFile = __DIR__ . $requestUri;
+    if (file_exists($staticFile) && !is_dir($staticFile)) {
+        $ext = strtolower(pathinfo($staticFile, PATHINFO_EXTENSION));
+        $mimes = [
+            'css'   => 'text/css; charset=UTF-8',
+            'js'    => 'application/javascript; charset=UTF-8',
+            'json'  => 'application/json; charset=UTF-8',
+            'svg'   => 'image/svg+xml',
+            'png'   => 'image/png',
+            'jpg'   => 'image/jpeg',
+            'jpeg'  => 'image/jpeg',
+            'gif'   => 'image/gif',
+            'webp'  => 'image/webp',
+            'ico'   => 'image/x-icon',
+            'woff'  => 'font/woff',
+            'woff2' => 'font/woff2',
+            'ttf'   => 'font/ttf',
+            'pdf'   => 'application/pdf',
+        ];
+        if (isset($mimes[$ext])) {
+            header('Content-Type: ' . $mimes[$ext]);
+            header('Content-Length: ' . filesize($staticFile));
+            header('Cache-Control: public, max-age=86400');
+            readfile($staticFile);
+            exit;
+        }
+    }
+}
+
 // Class Aid - Main Application Entry Point
 
 $baseDir = dirname(__DIR__);
