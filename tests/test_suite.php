@@ -110,21 +110,21 @@ it('CSRF generator produces 64-char hex tokens and validates matching tokens', f
 it('Request isJson detects JSON and AJAX headers correctly', function () {
     $_SERVER['HTTP_ACCEPT'] = 'application/json, text/plain';
     $req = new Request();
-    if (!$req->isJson()) {
-        throw new \Exception("isJson should be true for application/json accept header");
+    if (!$req->isJson() || !$req->isAjax()) {
+        throw new \Exception("isJson and isAjax should be true for application/json accept header");
     }
 
     $_SERVER['HTTP_ACCEPT'] = 'text/html';
     $_SERVER['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest';
     $req2 = new Request();
-    if (!$req2->isJson()) {
-        throw new \Exception("isJson should be true for XMLHttpRequest");
+    if (!$req2->isJson() || !$req2->isAjax()) {
+        throw new \Exception("isJson and isAjax should be true for XMLHttpRequest");
     }
 
     unset($_SERVER['HTTP_X_REQUESTED_WITH']);
     $req3 = new Request();
-    if ($req3->isJson()) {
-        throw new \Exception("isJson should be false for standard HTML request");
+    if ($req3->isJson() || $req3->isAjax()) {
+        throw new \Exception("isJson and isAjax should be false for standard HTML request");
     }
 });
 

@@ -65,6 +65,12 @@ class Request
             || strtolower($requestedWith) === 'xmlhttprequest';
     }
 
+    public function isAjax(): bool
+    {
+        $requestedWith = (string) ($this->server['HTTP_X_REQUESTED_WITH'] ?? '');
+        return strtolower($requestedWith) === 'xmlhttprequest' || $this->isJson();
+    }
+
     public function getPath(): string
     {
         return $this->path;
