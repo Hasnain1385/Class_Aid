@@ -20,11 +20,16 @@
 
             <form method="GET" action="/attendance" class="flex items-center gap-2">
                 <label class="text-xs font-semibold text-slate-500 dark:text-slate-400">Date:</label>
-                <input type="date"
-                       name="date"
-                       value="<?= $e($selectedDate) ?>"
-                       onchange="this.form.submit()"
-                       class="px-3 py-2 text-xs rounded-xl glass-input font-medium tabular-nums">
+                <div class="glass-input-group !w-44" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                    </div>
+                    <input type="date"
+                           name="date"
+                           value="<?= $e($selectedDate) ?>"
+                           onchange="this.form.submit()"
+                           class="font-medium tabular-nums">
+                </div>
             </form>
         </div>
     </div>

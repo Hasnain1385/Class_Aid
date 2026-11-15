@@ -34,20 +34,30 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                         Task Title *
                     </label>
-                    <input type="text" name="title" required placeholder="e.g. Call Liam's guardian" class="w-full px-3 py-2 text-xs rounded-xl glass-input text-gray-900 dark:text-white">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="bell" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="title" required placeholder="e.g. Call Liam's guardian">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                         Category
                     </label>
-                    <select name="category" class="w-full px-3 py-2 text-xs rounded-xl glass-input text-gray-900 dark:text-white">
-                        <option value="call">Parent Communication</option>
-                        <option value="attendance">Roll Call & Truancy</option>
-                        <option value="exam">Marks & Exams</option>
-                        <option value="subscription">Subscription / Renewal</option>
-                        <option value="general" selected>General Task</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="folder" class="w-4 h-4"></i>
+                        </div>
+                        <select name="category">
+                            <option value="call">Parent Communication</option>
+                            <option value="attendance">Roll Call & Truancy</option>
+                            <option value="exam">Marks & Exams</option>
+                            <option value="subscription">Subscription / Renewal</option>
+                            <option value="general" selected>General Task</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-2">
@@ -55,14 +65,24 @@
                         <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                             Due Date *
                         </label>
-                        <input type="date" name="due_date" value="<?= date('Y-m-d') ?>" required class="w-full px-3 py-2 text-xs rounded-xl glass-input text-gray-900 dark:text-white">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="calendar" class="w-4 h-4"></i>
+                            </div>
+                            <input type="date" name="due_date" value="<?= date('Y-m-d') ?>" required class="tabular-nums">
+                        </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                             Time (Optional)
                         </label>
-                        <input type="time" name="due_time" value="<?= date('H:i', strtotime('+1 hour')) ?>" class="w-full px-3 py-2 text-xs rounded-xl glass-input text-gray-900 dark:text-white">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <input type="time" name="due_time" value="<?= date('H:i', strtotime('+1 hour')) ?>" class="tabular-nums">
+                        </div>
                     </div>
                 </div>
 
@@ -70,11 +90,16 @@
                     <label class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1">
                         Priority Level
                     </label>
-                    <select name="priority" class="w-full px-3 py-2 text-xs rounded-xl glass-input text-gray-900 dark:text-white">
-                        <option value="high">High Priority</option>
-                        <option value="medium" selected>Medium Priority</option>
-                        <option value="low">Low Priority</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="flag" class="w-4 h-4"></i>
+                        </div>
+                        <select name="priority">
+                            <option value="high">High Priority</option>
+                            <option value="medium" selected>Medium Priority</option>
+                            <option value="low">Low Priority</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div>

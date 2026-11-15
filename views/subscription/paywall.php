@@ -177,7 +177,12 @@
                                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Transaction ID (TRX ID) *
                                     </label>
-                                    <input type="text" name="transaction_id" required placeholder="e.g. 11098234712 or TID-998" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono font-bold uppercase">
+                                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                                        <div class="input-icon-box">
+                                            <i data-lucide="receipt" class="w-4 h-4"></i>
+                                        </div>
+                                        <input type="text" name="transaction_id" required placeholder="e.g. 11098234712 or TID-998" class="font-mono font-bold uppercase">
+                                    </div>
                                     <span class="text-xs text-slate-400 mt-1 block">Found in the SMS receipt or payment confirmation screen.</span>
                                 </div>
 
@@ -185,7 +190,12 @@
                                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                                         Sender Phone / Account (Optional)
                                     </label>
-                                    <input type="text" name="sender_phone" placeholder="Your sender mobile number" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono tabular-nums">
+                                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                                        <div class="input-icon-box">
+                                            <i data-lucide="phone" class="w-4 h-4"></i>
+                                        </div>
+                                        <input type="text" name="sender_phone" placeholder="Your sender mobile number" class="font-mono tabular-nums">
+                                    </div>
                                 </div>
 
                                 <div class="sm:col-span-2">

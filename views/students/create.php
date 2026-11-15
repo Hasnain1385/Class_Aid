@@ -29,12 +29,17 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         Universal Student-Admin ID *
                     </label>
-                    <input type="text" 
-                           name="student_admin_id" 
-                           required 
-                           value="ADM-<?= date('Y') ?>-<?= sprintf('%03d', rand(100, 999)) ?>"
-                           placeholder="e.g. ADM-2026-035 or 1042" 
-                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="fingerprint" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text"
+                               name="student_admin_id"
+                               required
+                               value="ADM-<?= date('Y') ?>-<?= sprintf('%03d', rand(100, 999)) ?>"
+                               placeholder="e.g. ADM-2026-035 or 1042"
+                               class="font-mono tabular-nums">
+                    </div>
                     <p class="text-xs text-slate-400 mt-1">Unique institutional key across all classes (auto-suggested).</p>
                 </div>
 
@@ -42,14 +47,19 @@
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         Assigned Class & Section *
                     </label>
-                    <select name="class_id" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
-                        <option value="">-- Choose Class --</option>
-                        <?php foreach ($classes as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= ($preselectedClassId == $c['id']) ? 'selected' : '' ?>>
-                                <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home Class)' : '' ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        </div>
+                        <select name="class_id" required>
+                            <option value="">-- Choose Class --</option>
+                            <?php foreach ($classes as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($preselectedClassId == $c['id']) ? 'selected' : '' ?>>
+                                    <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home Class)' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
@@ -63,27 +73,52 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">First Name *</label>
-                    <input type="text" name="first_name" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="first_name" required placeholder="e.g. Alexander">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Last Name *</label>
-                    <input type="text" name="last_name" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="last_name" required placeholder="e.g. Hamilton">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Gender</label>
-                    <select name="gender" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                        <select name="gender">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth</label>
-                    <input type="date" name="dob" value="<?= date('Y-m-d', strtotime('-15 years')) ?>" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="dob" value="<?= date('Y-m-d', strtotime('-15 years')) ?>" class="tabular-nums">
+                    </div>
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Residential Address</label>
-                    <input type="text" name="address" placeholder="e.g. 14 Elm Street, Springfield" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="map-pin" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="address" placeholder="e.g. 14 Elm Street, Springfield">
+                    </div>
                 </div>
             </div>
         </div>
@@ -97,29 +132,54 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Primary Guardian Name *</label>
-                    <input type="text" name="primary_guardian_name" required placeholder="e.g. Robert Smith" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="user-check" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="primary_guardian_name" required placeholder="e.g. Robert Smith">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Relationship *</label>
-                    <select name="primary_guardian_relation" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
-                        <option value="Mother">Mother</option>
-                        <option value="Father">Father</option>
-                        <option value="Guardian">Legal Guardian</option>
-                        <option value="Grandparent">Grandparent</option>
-                        <option value="Other">Other</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                        </div>
+                        <select name="primary_guardian_relation">
+                            <option value="Mother">Mother</option>
+                            <option value="Father">Father</option>
+                            <option value="Guardian">Legal Guardian</option>
+                            <option value="Grandparent">Grandparent</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Primary Phone Number (WhatsApp linked) *</label>
-                    <input type="tel" name="primary_phone" required placeholder="e.g. +1 555-0199" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </div>
+                        <input type="tel" name="primary_phone" required placeholder="e.g. +1 555-0199" class="font-mono tabular-nums">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Secondary / Emergency Phone</label>
-                    <input type="tel" name="secondary_phone" placeholder="Optional backup number" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="phone-forwarded" class="w-4 h-4"></i>
+                        </div>
+                        <input type="tel" name="secondary_phone" placeholder="Optional backup number" class="font-mono tabular-nums">
+                    </div>
                 </div>
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Guardian Email Address</label>
-                    <input type="email" name="guardian_email" placeholder="e.g. parent@example.com" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="mail" class="w-4 h-4"></i>
+                        </div>
+                        <input type="email" name="guardian_email" placeholder="e.g. parent@example.com">
+                    </div>
                 </div>
             </div>
         </div>

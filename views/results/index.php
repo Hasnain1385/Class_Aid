@@ -119,43 +119,73 @@
             <!-- Target Subject Dropdown -->
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Subject & Class *</label>
-                <select name="subject_id" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
-                    <option value="">-- Choose Subject --</option>
-                    <?php foreach ($classes as $c): ?>
-                        <optgroup label="<?= $e($c['name'] . ' ' . $c['section']) ?>">
-                            <?php foreach (($classSubjects[$c['id']] ?? []) as $sub): ?>
-                                <option value="<?= $sub['id'] ?>">
-                                    <?= $e($sub['name']) ?> (<?= $e($c['name'] . ' ' . $c['section']) ?>)
-                                </option>
-                            <?php endforeach; ?>
-                        </optgroup>
-                    <?php endforeach; ?>
-                </select>
+                <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                    </div>
+                    <select name="subject_id" required>
+                        <option value="">-- Choose Subject --</option>
+                        <?php foreach ($classes as $c): ?>
+                            <optgroup label="<?= $e($c['name'] . ' ' . $c['section']) ?>">
+                                <?php foreach (($classSubjects[$c['id']] ?? []) as $sub): ?>
+                                    <option value="<?= $sub['id'] ?>">
+                                        <?= $e($sub['name']) ?> (<?= $e($c['name'] . ' ' . $c['section']) ?>)
+                                    </option>
+                                <?php endforeach; ?>
+                            </optgroup>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Exam Title *</label>
-                    <input type="text" name="title" required placeholder="e.g. Mid-Term Assessment" class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="award" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="title" required placeholder="e.g. Mid-Term Assessment">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Term / Semester</label>
-                    <input type="text" name="term" value="<?= 'Term ' . (date('n') >= 7 ? '1 (Fall ' . date('Y') . ')' : '2 (Spring ' . date('Y') . ')') ?>" class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="term" value="<?= 'Term ' . (date('n') >= 7 ? '1 (Fall ' . date('Y') . ')' : '2 (Spring ' . date('Y') . ')') ?>">
+                    </div>
                 </div>
             </div>
 
             <div class="grid grid-cols-3 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Max Marks *</label>
-                    <input type="number" step="1" name="max_marks" value="100" required class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="hash" class="w-4 h-4"></i>
+                        </div>
+                        <input type="number" step="1" name="max_marks" value="100" required class="font-mono tabular-nums">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Pass Marks *</label>
-                    <input type="number" step="1" name="pass_marks" value="40" required class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        </div>
+                        <input type="number" step="1" name="pass_marks" value="40" required class="font-mono tabular-nums">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Exam Date</label>
-                    <input type="date" name="exam_date" value="<?= date('Y-m-d') ?>" class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="exam_date" value="<?= date('Y-m-d') ?>" class="tabular-nums">
+                    </div>
                 </div>
             </div>
 
@@ -192,11 +222,16 @@
         <form id="form-print-matrix" method="GET" action="/results/print/class-matrix" target="_blank" class="space-y-4">
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Select Class *</label>
-                <select id="matrix-class-select" name="class_id" onchange="updateMatrixExamsList()" required class="w-full px-3.5 py-2.5 text-xs rounded-xl glass-input">
-                    <?php foreach ($classes as $c): ?>
-                        <option value="<?= $c['id'] ?>"><?= $e($c['name'] . ' - ' . $c['section']) ?></option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                    </div>
+                    <select id="matrix-class-select" name="class_id" onchange="updateMatrixExamsList()" required>
+                        <?php foreach ($classes as $c): ?>
+                            <option value="<?= $c['id'] ?>"><?= $e($c['name'] . ' - ' . $c['section']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <div>

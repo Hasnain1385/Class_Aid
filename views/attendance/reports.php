@@ -51,13 +51,18 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                         Class Section *
                     </label>
-                    <select name="class_id" onchange="document.getElementById('filter-form').submit()" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-medium">
-                        <?php foreach ($classes as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= ($selectedClass && (int)$selectedClass['id'] === (int)$c['id']) ? 'selected' : '' ?>>
-                                <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home)' : '' ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        </div>
+                        <select name="class_id" onchange="document.getElementById('filter-form').submit()">
+                            <?php foreach ($classes as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($selectedClass && (int)$selectedClass['id'] === (int)$c['id']) ? 'selected' : '' ?>>
+                                    <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home)' : '' ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Date From -->
@@ -65,7 +70,12 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                         Date From
                     </label>
-                    <input type="date" name="date_from" value="<?= $e($dateFrom) ?>" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="date_from" value="<?= $e($dateFrom) ?>" class="tabular-nums">
+                    </div>
                 </div>
 
                 <!-- Date To -->
@@ -73,7 +83,12 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                         Date To
                     </label>
-                    <input type="date" name="date_to" value="<?= $e($dateTo) ?>" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="date_to" value="<?= $e($dateTo) ?>" class="tabular-nums">
+                    </div>
                 </div>
 
                 <!-- Scope Selection -->
@@ -81,11 +96,16 @@
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                         Filter Scope
                     </label>
-                    <select name="scope" id="scope-select" onchange="updateScopeVisibility()" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-medium">
-                        <option value="all" <?= $scope === 'all' ? 'selected' : '' ?>>Whole Class (All Students)</option>
-                        <option value="single" <?= $scope === 'single' ? 'selected' : '' ?>>Single Specific Student</option>
-                        <option value="selected" <?= $scope === 'selected' ? 'selected' : '' ?>>Select Multiple Students</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="users" class="w-4 h-4"></i>
+                        </div>
+                        <select name="scope" id="scope-select" onchange="updateScopeVisibility()">
+                            <option value="all" <?= $scope === 'all' ? 'selected' : '' ?>>Whole Class (All Students)</option>
+                            <option value="single" <?= $scope === 'single' ? 'selected' : '' ?>>Single Specific Student</option>
+                            <option value="selected" <?= $scope === 'selected' ? 'selected' : '' ?>>Select Multiple Students</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -94,14 +114,19 @@
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                     Select Target Student
                 </label>
-                <select name="student_id" class="w-full sm:w-80 px-3 py-2 text-xs rounded-xl glass-input">
-                    <option value="">-- Choose Student --</option>
-                    <?php foreach ($allStudents as $stu): ?>
-                        <option value="<?= $stu['id'] ?>" <?= $singleStudentId === (int)$stu['id'] ? 'selected' : '' ?>>
-                            <?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?> (<?= $e($stu['student_admin_id']) ?>)
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+                <div class="glass-input-group sm:w-80" onclick="this.querySelector('select')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="user" class="w-4 h-4"></i>
+                    </div>
+                    <select name="student_id">
+                        <option value="">-- Choose Student --</option>
+                        <?php foreach ($allStudents as $stu): ?>
+                            <option value="<?= $stu['id'] ?>" <?= $singleStudentId === (int)$stu['id'] ? 'selected' : '' ?>>
+                                <?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?> (<?= $e($stu['student_admin_id']) ?>)
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <!-- Multiple Students Checkbox Panel (Conditional) -->

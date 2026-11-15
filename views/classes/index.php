@@ -152,27 +152,52 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Class Name *</label>
-                    <input type="text" name="name" required placeholder="e.g. Grade 10" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="name" required placeholder="e.g. Grade 10">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Section *</label>
-                    <input type="text" name="section" required placeholder="e.g. A" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="bookmark" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="section" required placeholder="e.g. A">
+                    </div>
                 </div>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Academic Year</label>
-                <input type="text" name="academic_year" value="<?= date('Y') ?>-<?= date('Y') + 1 ?>" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono tabular-nums">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                    </div>
+                    <input type="text" name="academic_year" value="<?= date('Y') ?>-<?= date('Y') + 1 ?>" class="font-mono tabular-nums">
+                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Initial Subject</label>
-                    <input type="text" name="initial_subject" placeholder="e.g. Mathematics" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="book-open" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="initial_subject" placeholder="e.g. Mathematics">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Subject Code</label>
-                    <input type="text" name="initial_code" placeholder="e.g. MTH-10" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="hash" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="initial_code" placeholder="e.g. MTH-10" class="font-mono">
+                    </div>
                 </div>
             </div>
 
@@ -210,17 +235,32 @@
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Class Name *</label>
-                    <input type="text" name="name" id="edit-class-name" required class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="name" id="edit-class-name" required>
+                    </div>
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Section *</label>
-                    <input type="text" name="section" id="edit-class-section" required class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="bookmark" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text" name="section" id="edit-class-section" required>
+                    </div>
                 </div>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Academic Year</label>
-                <input type="text" name="academic_year" id="edit-class-year" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono tabular-nums">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                    </div>
+                    <input type="text" name="academic_year" id="edit-class-year" class="font-mono tabular-nums">
+                </div>
             </div>
 
             <div class="flex items-center gap-2 pt-1">
@@ -364,12 +404,22 @@
 
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Subject Name *</label>
-                <input type="text" name="name" required placeholder="e.g. Computer Science" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="book-open" class="w-4 h-4"></i>
+                    </div>
+                    <input type="text" name="name" required placeholder="e.g. Computer Science">
+                </div>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Subject Code</label>
-                <input type="text" name="code" placeholder="e.g. CS-101" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="hash" class="w-4 h-4"></i>
+                    </div>
+                    <input type="text" name="code" placeholder="e.g. CS-101" class="font-mono">
+                </div>
             </div>
 
             <div class="pt-2 flex justify-end gap-2">

@@ -185,13 +185,15 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
-.glass-input, 
+.glass-input,
 .pro-input,
 input.glass-input,
 textarea.glass-input,
 select.glass-input {
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(203, 213, 225, 0.95) !important;
     color: #0f172a !important;
     border-radius: 0.75rem;
     font-size: 0.875rem;
@@ -200,7 +202,7 @@ select.glass-input {
     padding-bottom: 0.625rem;
     padding-left: 0.875rem;
     padding-right: 0.875rem;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.08), 0 1px 3px -1px rgba(15, 23, 42, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
 }
 
@@ -209,10 +211,30 @@ select.glass-input {
 .dark input.glass-input,
 .dark textarea.glass-input,
 .dark select.glass-input {
-    background-color: #091528 !important;
-    border: 1px solid rgba(59, 130, 246, 0.28) !important;
+    background: rgba(10, 25, 47, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border: 1px solid rgba(59, 130, 246, 0.32) !important;
     color: #f8fafc !important;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 16px -2px rgba(2, 6, 23, 0.6), 0 1px 4px 0 rgba(29, 78, 216, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.glass-input:hover,
+.pro-input:hover,
+input.glass-input:hover,
+textarea.glass-input:hover,
+select.glass-input:hover {
+    border-color: #818cf8 !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.12), 0 1px 3px -1px rgba(15, 23, 42, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark .glass-input:hover,
+.dark .pro-input:hover,
+.dark input.glass-input:hover,
+.dark textarea.glass-input:hover,
+.dark select.glass-input:hover {
+    border-color: rgba(96, 165, 250, 0.55) !important;
+    box-shadow: 0 6px 20px -2px rgba(2, 6, 23, 0.7), 0 1px 6px 0 rgba(59, 130, 246, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.16) !important;
 }
 
 .glass-input:focus,
@@ -221,7 +243,8 @@ input.glass-input:focus,
 textarea.glass-input:focus,
 select.glass-input:focus {
     border-color: #4f46e5 !important;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22), 0 4px 14px -2px rgba(79, 70, 229, 0.15), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+    background-color: #ffffff !important;
     outline: none !important;
 }
 
@@ -231,8 +254,8 @@ select.glass-input:focus {
 .dark textarea.glass-input:focus,
 .dark select.glass-input:focus {
     border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 0 14px rgba(59, 130, 246, 0.2) !important;
-    background-color: #0b1a32 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 0 18px 0 rgba(59, 130, 246, 0.25), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(13, 28, 56, 0.98) !important;
     outline: none !important;
 }
 
@@ -263,80 +286,102 @@ select.glass-input:focus {
 }
 
 /* ==========================================================================
-   Seamless Glass Input Group (Integrated Icon & Zero Text Overlap)
+   Seamless Liquid Glass Input Group (Integrated Fixed Left Icon & Bar Drop Shadow)
    ========================================================================== */
 .glass-input-group {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
+    height: 2.75rem !important; /* 44px sleek bar */
     border-radius: 0.75rem !important; /* rounded-xl */
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(203, 213, 225, 0.95) !important; /* crisp edge line */
     color: #0f172a !important;
     position: relative !important;
     overflow: hidden !important;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.08), 0 1px 3px -1px rgba(15, 23, 42, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
     cursor: text;
 }
 
 .glass-input-group:hover {
-    border-color: #94a3b8 !important;
+    border-color: #818cf8 !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.12), 0 1px 3px -1px rgba(15, 23, 42, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 
 .glass-input-group:focus-within {
     border-color: #4f46e5 !important;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22), 0 4px 14px -2px rgba(79, 70, 229, 0.15), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+    background-color: #ffffff !important;
 }
 
 .dark .glass-input-group {
-    background-color: #091528 !important;
-    border: 1px solid rgba(59, 130, 246, 0.28) !important;
+    background: rgba(10, 25, 47, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border: 1px solid rgba(59, 130, 246, 0.32) !important; /* crisp royal blue edge line */
     color: #f8fafc !important;
-    box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px 0 rgba(0, 0, 0, 0.35);
+    box-shadow: 0 4px 16px -2px rgba(2, 6, 23, 0.6), 0 1px 4px 0 rgba(29, 78, 216, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important;
 }
 
 .dark .glass-input-group:hover {
-    border-color: rgba(96, 165, 250, 0.45) !important;
+    border-color: rgba(96, 165, 250, 0.55) !important;
+    box-shadow: 0 6px 20px -2px rgba(2, 6, 23, 0.7), 0 1px 6px 0 rgba(59, 130, 246, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.16) !important;
 }
 
 .dark .glass-input-group:focus-within {
     border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 0 14px rgba(59, 130, 246, 0.2) !important;
-    background-color: #0b1a32 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 0 18px 0 rgba(59, 130, 246, 0.25), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(13, 28, 56, 0.98) !important;
 }
 
-/* Seamless Integrated Icon Box: Zero harsh dividing lines or odd background tints */
+/* Fixed Left Icon: Pinned securely on the left side of the bar */
 .glass-input-group .input-icon-box,
 .glass-input-group .input-addon-box {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding-left: 0.875rem !important; /* 14px */
-    padding-right: 0.5rem !important;   /* 8px */
+    flex: 0 0 2.5rem !important; /* fixed 40px width pinned left */
+    width: 2.5rem !important;
+    height: 100% !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.25rem !important;
     background: transparent !important;
     border: none !important;
     color: #64748b !important;
     flex-shrink: 0 !important;
     user-select: none;
     pointer-events: none;
+    transition: color 0.15s ease !important;
+}
+
+.glass-input-group:focus-within .input-icon-box,
+.glass-input-group:focus-within .input-addon-box {
+    color: #4f46e5 !important;
 }
 
 .dark .glass-input-group .input-icon-box,
 .dark .glass-input-group .input-addon-box {
     background: transparent !important;
     border: none !important;
+    color: #60a5fa !important;
+}
+
+.dark .glass-input-group:focus-within .input-icon-box,
+.dark .glass-input-group:focus-within .input-addon-box {
     color: #93c5fd !important;
 }
 
-/* Input element: fills width, clips text at its own boundaries so text CAN NEVER touch or go behind icon */
+/* Input element: starts immediately right next to the icon, text never slides behind icon */
 .glass-input-group input,
 .glass-input-group select {
     flex: 1 1 0% !important;
     width: 100% !important;
     min-width: 0 !important;
-    height: 2.625rem !important; /* 42px standard py-2.5 rounded-xl */
-    padding: 0.5rem 0.875rem 0.5rem 0.25rem !important;
+    height: 100% !important;
+    padding: 0 0.875rem 0 0.25rem !important; /* starts right next to the fixed icon */
     font-size: 0.875rem !important;
     line-height: 1.25rem !important;
     background: transparent !important;
@@ -396,35 +441,54 @@ select.glass-input:focus {
     color: #f8fafc !important;
 }
 
-/* Also automatically transform any legacy .relative container with leading icon to seamless flex container */
+/* Also automatically transform any legacy .relative container with leading icon to seamless liquid glass flex container */
 .relative:has(> .absolute.left-0):has(> input, > select) {
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
+    height: 2.75rem !important; /* 44px sleek bar */
     border-radius: 0.75rem !important;
-    background-color: #ffffff !important;
-    border: 1px solid #cbd5e1 !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(203, 213, 225, 0.95) !important;
+    color: #0f172a !important;
+    position: relative !important;
     overflow: hidden !important;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 6px -1px rgba(15, 23, 42, 0.08), 0 1px 3px -1px rgba(15, 23, 42, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
     cursor: text;
 }
 
+.relative:has(> .absolute.left-0):has(> input, > select):hover {
+    border-color: #818cf8 !important;
+    box-shadow: 0 4px 12px -2px rgba(99, 102, 241, 0.12), 0 1px 3px -1px rgba(15, 23, 42, 0.06), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
 .dark .relative:has(> .absolute.left-0):has(> input, > select) {
-    background-color: #091528 !important;
-    border-color: rgba(59, 130, 246, 0.28) !important;
-    box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.05), 0 2px 8px 0 rgba(0, 0, 0, 0.35);
+    background: rgba(10, 25, 47, 0.88) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    border: 1px solid rgba(59, 130, 246, 0.32) !important;
+    color: #f8fafc !important;
+    box-shadow: 0 4px 16px -2px rgba(2, 6, 23, 0.6), 0 1px 4px 0 rgba(29, 78, 216, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+.dark .relative:has(> .absolute.left-0):has(> input, > select):hover {
+    border-color: rgba(96, 165, 250, 0.55) !important;
+    box-shadow: 0 6px 20px -2px rgba(2, 6, 23, 0.7), 0 1px 6px 0 rgba(59, 130, 246, 0.2), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.16) !important;
 }
 
 .relative:has(> .absolute.left-0):has(> input, > select):focus-within {
     border-color: #4f46e5 !important;
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.22), 0 4px 14px -2px rgba(79, 70, 229, 0.15), inset 0 1px 1px 0 rgba(255, 255, 255, 0.95) !important;
+    background-color: #ffffff !important;
 }
 
 .dark .relative:has(> .absolute.left-0):has(> input, > select):focus-within {
     border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35), 0 0 14px rgba(59, 130, 246, 0.2) !important;
-    background-color: #0b1a32 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4), 0 0 18px 0 rgba(59, 130, 246, 0.25), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.2) !important;
+    background-color: rgba(13, 28, 56, 0.98) !important;
 }
 
 .relative:has(> .absolute.left-0):has(> input, > select) > .absolute.left-0 {
@@ -432,27 +496,42 @@ select.glass-input:focus {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding-left: 0.875rem !important;
-    padding-right: 0.5rem !important;
+    flex: 0 0 2.5rem !important;
+    width: 2.5rem !important;
+    height: 100% !important;
+    padding-left: 0.75rem !important;
+    padding-right: 0.25rem !important;
     background: transparent !important;
     border: none !important;
     color: #64748b !important;
     flex-shrink: 0 !important;
     pointer-events: none !important;
+    transition: color 0.15s ease !important;
+}
+
+.relative:has(> .absolute.left-0):has(> input, > select):focus-within > .absolute.left-0 {
+    color: #4f46e5 !important;
 }
 
 .dark .relative:has(> .absolute.left-0):has(> input, > select) > .absolute.left-0 {
+    background: transparent !important;
+    border: none !important;
+    color: #60a5fa !important;
+}
+
+.dark .relative:has(> .absolute.left-0):has(> input, > select):focus-within > .absolute.left-0 {
     color: #93c5fd !important;
 }
 
 .relative:has(> .absolute.left-0):has(> input, > select) > input.glass-input,
-.relative:has(> .absolute.left-0):has(> input, > select) > input {
+.relative:has(> .absolute.left-0):has(> input, > select) > input,
+.relative:has(> .absolute.left-0):has(> input, > select) > select {
     position: static !important;
     flex: 1 1 0% !important;
     width: 100% !important;
     min-width: 0 !important;
-    height: 2.625rem !important;
-    padding: 0.5rem 0.875rem 0.5rem 0.25rem !important;
+    height: 100% !important;
+    padding: 0 0.875rem 0 0.25rem !important;
     font-size: 0.875rem !important;
     line-height: 1.25rem !important;
     background: transparent !important;
@@ -464,7 +543,10 @@ select.glass-input:focus {
 }
 
 .dark .relative:has(> .absolute.left-0):has(> input, > select) > input.glass-input,
-.dark .relative:has(> .absolute.left-0):has(> input, > select) > input {
+.dark .relative:has(> .absolute.left-0):has(> input, > select) > input,
+.dark .relative:has(> .absolute.left-0):has(> input, > select) > select {
+    background: transparent !important;
+    background-color: transparent !important;
     color: #f8fafc !important;
 }
 

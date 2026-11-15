@@ -51,10 +51,15 @@
                         Search & Select Student *
                     </label>
                     <input type="hidden" name="student_id" id="selected-student-id" required>
-                    <input type="text" 
-                           id="student-picker-input"
-                           class="global-student-search w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-slate-400"
-                           placeholder="Type student name or ID (e.g. ADM-2026-001)...">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="search" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text"
+                               id="student-picker-input"
+                               class="global-student-search"
+                               placeholder="Type student name or ID (e.g. ADM-2026-001)...">
+                    </div>
                     <div class="search-results-dropdown hidden absolute left-0 right-0 mt-2 glass-card p-1 shadow-2xl max-h-60 overflow-y-auto z-50"></div>
                     <div id="student-selected-badge" class="hidden mt-2 p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/50 text-xs font-semibold text-indigo-600 dark:text-indigo-400 flex items-center justify-between">
                         <span id="student-selected-text"></span>
@@ -99,52 +104,75 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Person Contacted *</label>
-                    <input type="text" 
-                           name="contact_person_name" 
-                           id="contact-person-name"
-                           value="<?= $student ? $e($student['primary_guardian_name']) : '' ?>" 
-                           required 
-                           placeholder="e.g. Mrs. Sarah Miller" 
-                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text"
+                               name="contact_person_name"
+                               id="contact-person-name"
+                               value="<?= $student ? $e($student['primary_guardian_name']) : '' ?>"
+                               required
+                               placeholder="e.g. Mrs. Sarah Miller">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Relationship</label>
-                    <input type="text" 
-                           name="relationship" 
-                           id="contact-relation"
-                           value="<?= $student ? $e($student['primary_guardian_relation']) : 'Mother' ?>" 
-                           placeholder="Mother, Father, etc." 
-                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                        </div>
+                        <input type="text"
+                               name="relationship"
+                               id="contact-relation"
+                               value="<?= $student ? $e($student['primary_guardian_relation']) : 'Mother' ?>"
+                               placeholder="Mother, Father, etc.">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Phone Number Dialed *</label>
-                    <input type="tel" 
-                           name="phone_dialed" 
-                           id="phone-dialed"
-                           value="<?= $student ? $e($student['primary_phone']) : '' ?>" 
-                           required 
-                           placeholder="e.g. +1 555-0101" 
-                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="phone" class="w-4 h-4"></i>
+                        </div>
+                        <input type="tel"
+                               name="phone_dialed"
+                               id="phone-dialed"
+                               value="<?= $student ? $e($student['primary_phone']) : '' ?>"
+                               required
+                               placeholder="e.g. +1 555-0101"
+                               class="font-mono tabular-nums">
+                    </div>
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Channel / Medium</label>
-                    <select name="call_type" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
-                        <option value="Phone Call">Phone Call</option>
-                        <option value="WhatsApp Audio/Video">WhatsApp Audio/Video</option>
-                        <option value="WhatsApp Message">WhatsApp Message</option>
-                        <option value="In-Person Meeting">In-Person Meeting</option>
-                    </select>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="message-square" class="w-4 h-4"></i>
+                        </div>
+                        <select name="call_type">
+                            <option value="Phone Call">Phone Call</option>
+                            <option value="WhatsApp Audio/Video">WhatsApp Audio/Video</option>
+                            <option value="WhatsApp Message">WhatsApp Message</option>
+                            <option value="In-Person Meeting">In-Person Meeting</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="sm:col-span-2">
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Date & Time of Call</label>
-                    <input type="datetime-local" 
-                           name="call_timestamp" 
-                           value="<?= date('Y-m-d\TH:i') ?>" 
-                           class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input tabular-nums">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="datetime-local"
+                               name="call_timestamp"
+                               value="<?= date('Y-m-d\TH:i') ?>"
+                               class="tabular-nums">
+                    </div>
                 </div>
             </div>
         </div>
@@ -190,7 +218,12 @@
 
             <div id="follow-up-date-container" class="hidden sm:w-1/2">
                 <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">Target Follow-up Date</label>
-                <input type="date" name="follow_up_date" value="<?= date('Y-m-d', strtotime('+7 days')) ?>" class="w-full px-3.5 py-2 text-xs rounded-xl glass-input tabular-nums">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
+                        <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                    </div>
+                    <input type="date" name="follow_up_date" value="<?= date('Y-m-d', strtotime('+7 days')) ?>" class="tabular-nums">
+                </div>
             </div>
         </div>
 
