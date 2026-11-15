@@ -169,8 +169,39 @@ select.glass-input {
     border-radius: 0.75rem;
     font-size: 0.875rem;
     line-height: 1.25rem;
-    padding: 0.5rem 0.875rem;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+/* Enforce clearance for inputs with leading icons (Search, Login, Register, Profile) */
+.glass-input.pl-8, input.pl-8, input.glass-input.pl-8 { padding-left: 2.25rem !important; }
+.glass-input.pl-9, input.pl-9, input.glass-input.pl-9 { padding-left: 2.625rem !important; }
+.glass-input.pl-10, input.pl-10, input.glass-input.pl-10 { padding-left: 2.875rem !important; }
+.glass-input.pl-11, input.pl-11, input.glass-input.pl-11 { padding-left: 3.125rem !important; }
+.glass-input.pl-12, input.pl-12, input.glass-input.pl-12 { padding-left: 3.375rem !important; }
+
+/* Enforce clearance for inputs with trailing action icons (Password toggles) */
+.glass-input.pr-8, input.pr-8, input.glass-input.pr-8 { padding-right: 2.25rem !important; }
+.glass-input.pr-9, input.pr-9, input.glass-input.pr-9 { padding-right: 2.5rem !important; }
+.glass-input.pr-10, input.pr-10, input.glass-input.pr-10 { padding-right: 2.75rem !important; }
+.glass-input.pr-11, input.pr-11, input.glass-input.pr-11 { padding-right: 3rem !important; }
+.glass-input.pr-12, input.pr-12, input.glass-input.pr-12 { padding-right: 3.25rem !important; }
+
+/* Dedicated input with leading icon wrapper rule */
+.search-wrapper input.glass-input,
+.global-student-search,
+.relative > .absolute.left-0 ~ input.glass-input,
+.relative > .absolute.left-0 ~ .glass-input {
+    padding-left: 2.625rem !important; /* 42px: ensures 14px clear gutter past the 16px/20px icon */
+}
+
+/* Dedicated input with trailing icon/button */
+.relative > input.glass-input:has(~ .absolute.right-0),
+.relative > .glass-input:has(~ .absolute.right-0) {
+    padding-right: 2.75rem !important;
 }
 
 .glass-input:hover, 
