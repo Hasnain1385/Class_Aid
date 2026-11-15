@@ -40,15 +40,15 @@
             <div class="sm:col-span-2">
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Search by Name, Admin ID or Phone</label>
                 <div class="flex gap-2">
-                    <div class="relative flex-1">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="glass-input-group flex-1" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
                             <i data-lucide="search" class="w-4 h-4"></i>
                         </div>
                         <input type="text" 
                                name="q" 
                                value="<?= $e($searchQuery) ?>" 
                                placeholder="e.g. ADM-2026-010, Sarah, or 555-0101" 
-                               class="w-full pl-9 pr-3 py-2 text-xs rounded-xl glass-input">
+                               class="text-xs">
                     </div>
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
                         Search

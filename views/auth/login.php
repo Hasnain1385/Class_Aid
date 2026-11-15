@@ -5,13 +5,13 @@
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1.5">
             Teacher Email Address
         </label>
-        <div class="glass-input-group">
-            <div class="input-addon-box">
+        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+            <div class="input-icon-box">
                 <i data-lucide="mail" class="w-4 h-4"></i>
             </div>
-            <input type="email" 
-                   name="email" 
-                   required 
+            <input type="email"
+                   name="email"
+                   required
                    autocomplete="email"
                    placeholder="e.g. teacher@school.edu">
         </div>
@@ -26,19 +26,26 @@
                 Forgot Password?
             </a>
         </div>
-        <div class="glass-input-group">
-            <div class="input-addon-box">
+        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+            <div class="input-icon-box">
                 <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
-            <input type="password" 
-                   name="password" 
-                   required 
+            <input type="password"
+                   id="login-password"
+                   name="password"
+                   required
                    autocomplete="current-password"
                    placeholder="••••••••">
+            <button type="button"
+                    onclick="event.stopPropagation(); togglePasswordVisibility('login-password', this)"
+                    class="input-action-btn"
+                    title="Toggle password visibility">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
         </div>
     </div>
 
-    <button type="submit" 
+    <button type="submit"
             class="w-full py-3 px-4 rounded-xl font-bold text-sm text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/25 flex items-center justify-center gap-2 group transition-all">
         <span>Sign In to Class Aid</span>
         <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>

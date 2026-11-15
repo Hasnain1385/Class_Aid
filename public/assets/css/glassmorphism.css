@@ -190,27 +190,34 @@ select.glass-input {
 .glass-input.pr-11, input.pr-11, input.glass-input.pr-11 { padding-right: 3rem !important; }
 .glass-input.pr-12, input.pr-12, input.glass-input.pr-12 { padding-right: 3.25rem !important; }
 
-/* Dedicated input with leading icon wrapper rule */
-.search-wrapper input.glass-input,
-.global-student-search,
-.relative > .absolute.left-0 ~ input.glass-input,
-.relative > .absolute.left-0 ~ .glass-input {
+/* Dedicated input with leading icon wrapper rule (legacy single inputs) */
+.search-wrapper input.glass-input:not(.glass-input-group input),
+.relative > .absolute.left-0 ~ input.glass-input:not(.glass-input-group input),
+.relative > .absolute.left-0 ~ .glass-input:not(.glass-input-group input) {
     padding-left: 2.625rem !important; /* 42px: ensures 14px clear gutter past the 16px/20px icon */
 }
 
+#global-modal-search-input {
+    padding-left: 0.25rem !important;
+    padding-right: 0.75rem !important;
+}
+
 /* ==========================================================================
-   Fixed Boxed State Input Addons (Physical Container — Zero Text Underlap)
+   Seamless Glass Input Group (Integrated Icon & Zero Text Overlap)
    ========================================================================== */
 .glass-input-group {
     display: flex !important;
-    align-items: stretch !important;
+    align-items: center !important;
     width: 100% !important;
     border-radius: 0.75rem !important; /* rounded-xl */
     background: var(--input-bg) !important;
     border: 1px solid var(--input-border) !important;
+    color: var(--text-primary) !important;
+    position: relative !important;
     overflow: hidden !important;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+    cursor: text;
 }
 
 .glass-input-group:focus-within {
@@ -218,32 +225,39 @@ select.glass-input {
     box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
 }
 
-.input-addon-box {
+/* Seamless Integrated Icon Box: Zero harsh dividing lines or odd background tints */
+.glass-input-group .input-icon-box,
+.glass-input-group .input-addon-box {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    padding: 0.625rem 0.875rem !important;
-    background: rgba(148, 163, 184, 0.12) !important;
-    border-right: 1px solid var(--input-border) !important;
+    padding-left: 0.875rem !important; /* 14px */
+    padding-right: 0.5rem !important;   /* 8px */
+    background: transparent !important;
+    border: none !important;
     color: var(--text-muted) !important;
     flex-shrink: 0 !important;
     user-select: none;
     pointer-events: none;
 }
 
-.dark .input-addon-box {
-    background: rgba(30, 58, 138, 0.35) !important;
-    border-right: 1px solid var(--input-border) !important;
+.dark .glass-input-group .input-icon-box,
+.dark .glass-input-group .input-addon-box {
+    background: transparent !important;
+    border: none !important;
     color: #93c5fd !important;
 }
 
+/* Input element: fills width, clips text at its own boundaries so text CAN NEVER touch or go behind icon */
 .glass-input-group input,
 .glass-input-group select {
-    flex: 1 1 auto !important;
+    flex: 1 1 0% !important;
     width: 100% !important;
     min-width: 0 !important;
-    padding: 0.625rem 0.875rem !important;
+    height: 2.625rem !important; /* 42px standard py-2.5 rounded-xl */
+    padding: 0.5rem 0.875rem 0.5rem 0.25rem !important;
     font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
     background: transparent !important;
     border: none !important;
     outline: none !important;
@@ -254,6 +268,93 @@ select.glass-input {
 .glass-input-group input::placeholder {
     color: var(--text-subtle) !important;
     opacity: 0.85;
+}
+
+/* Trailing action button (e.g. eye toggle, clear) */
+.glass-input-group .input-action-btn,
+.glass-input-group button[type="button"] {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-left: 0.375rem !important;
+    padding-right: 0.875rem !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    color: var(--text-muted) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
+    transition: color 0.15s ease !important;
+}
+
+.glass-input-group .input-action-btn:hover,
+.glass-input-group button[type="button"]:hover {
+    color: var(--text-primary) !important;
+}
+
+/* Also automatically transform any legacy .relative container with leading icon to seamless flex container */
+.relative:has(> .absolute.left-0) {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    border-radius: 0.75rem !important;
+    background: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease !important;
+    cursor: text;
+}
+
+.relative:has(> .absolute.left-0):focus-within {
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
+}
+
+.relative:has(> .absolute.left-0) > .absolute.left-0 {
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-left: 0.875rem !important;
+    padding-right: 0.5rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    flex-shrink: 0 !important;
+    pointer-events: none !important;
+}
+
+.relative:has(> .absolute.left-0) > input.glass-input,
+.relative:has(> .absolute.left-0) > input {
+    position: static !important;
+    flex: 1 1 0% !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 2.625rem !important;
+    padding: 0.5rem 0.875rem 0.5rem 0.25rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: var(--text-primary) !important;
+}
+
+.relative:has(> .absolute.left-0) > .absolute.right-0,
+.relative:has(> .absolute.left-0) > button.absolute.right-0 {
+    position: static !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding-left: 0.375rem !important;
+    padding-right: 0.875rem !important;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted) !important;
+    cursor: pointer !important;
+    flex-shrink: 0 !important;
 }
 
 /* Dedicated input with trailing icon/button */

@@ -17,11 +17,17 @@
             <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 New Password (Min 6 Characters) <span class="text-rose-500">*</span>
             </label>
-            <div class="glass-input-group">
-                <div class="input-addon-box">
+            <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                <div class="input-icon-box">
                     <i data-lucide="lock" class="w-4 h-4"></i>
                 </div>
-                <input type="password" id="password" name="password" minlength="6" required autofocus placeholder="••••••••">
+                <input type="password" id="reset-password-field" name="password" minlength="6" required autofocus placeholder="••••••••">
+                <button type="button"
+                        onclick="event.stopPropagation(); togglePasswordVisibility('reset-password-field', this)"
+                        class="input-action-btn"
+                        title="Toggle password visibility">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
             </div>
         </div>
 
@@ -29,11 +35,17 @@
             <label for="password_confirmation" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 Confirm New Password <span class="text-rose-500">*</span>
             </label>
-            <div class="glass-input-group">
-                <div class="input-addon-box">
+            <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                <div class="input-icon-box">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
                 </div>
-                <input type="password" id="password_confirmation" name="password_confirmation" minlength="6" required placeholder="••••••••">
+                <input type="password" id="reset-password-conf-field" name="password_confirmation" minlength="6" required placeholder="••••••••">
+                <button type="button"
+                        onclick="event.stopPropagation(); togglePasswordVisibility('reset-password-conf-field', this)"
+                        class="input-action-btn"
+                        title="Toggle password visibility">
+                    <i data-lucide="eye" class="w-4 h-4"></i>
+                </button>
             </div>
         </div>
 

@@ -17,8 +17,8 @@
                 <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Your Full Name <span class="text-rose-500">*</span>
                 </label>
-                <div class="glass-input-group">
-                    <div class="input-addon-box">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
                         <i data-lucide="user" class="w-4 h-4"></i>
                     </div>
                     <input type="text" id="name" name="name" required placeholder="e.g. Mr. David Clark">
@@ -29,8 +29,8 @@
                 <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Work / School Email <span class="text-rose-500">*</span>
                 </label>
-                <div class="glass-input-group">
-                    <div class="input-addon-box">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
                         <i data-lucide="mail" class="w-4 h-4"></i>
                     </div>
                     <input type="email" id="email" name="email" required placeholder="teacher@school.edu" class="font-mono">
@@ -41,11 +41,17 @@
                 <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Password (Min 6 Characters) <span class="text-rose-500">*</span>
                 </label>
-                <div class="glass-input-group">
-                    <div class="input-addon-box">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
                         <i data-lucide="lock" class="w-4 h-4"></i>
                     </div>
-                    <input type="password" id="password" name="password" minlength="6" required placeholder="••••••••">
+                    <input type="password" id="register-password" name="password" minlength="6" required placeholder="••••••••">
+                    <button type="button"
+                            onclick="event.stopPropagation(); togglePasswordVisibility('register-password', this)"
+                            class="input-action-btn"
+                            title="Toggle password visibility">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
                 </div>
             </div>
 
@@ -53,8 +59,8 @@
                 <label for="school_name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     School / Institution Name
                 </label>
-                <div class="glass-input-group">
-                    <div class="input-addon-box">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
                         <i data-lucide="building" class="w-4 h-4"></i>
                     </div>
                     <input type="text" id="school_name" name="school_name" placeholder="e.g. St. Jude High School">
@@ -65,8 +71,8 @@
                 <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Phone / WhatsApp Number (For Parent Communication Journal)
                 </label>
-                <div class="glass-input-group">
-                    <div class="input-addon-box">
+                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                    <div class="input-icon-box">
                         <i data-lucide="phone" class="w-4 h-4"></i>
                     </div>
                     <input type="text" id="phone" name="phone" placeholder="+1 555-0199" class="font-mono">
@@ -95,14 +101,14 @@
         <!-- Responsive Plan Grid: 1 col on mobile, 2 on tablet, 3 on desktop -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="plan-cards-container">
             <?php foreach ($plans as $pCode => $p): ?>
-                <?php 
+                <?php
                     $isSelected = ($pCode === $selectedPlan);
                     $isPopular = !empty($p['popular']);
                 ?>
-                <div onclick="selectPlanCard('<?= $pCode ?>')" 
-                     id="plan-card-<?= $pCode ?>" 
+                <div onclick="selectPlanCard('<?= $pCode ?>')"
+                     id="plan-card-<?= $pCode ?>"
                      class="plan-card relative flex flex-col justify-between p-4 rounded-2xl border-2 cursor-pointer transition-all hover:scale-[1.02] <?= $isSelected ? 'border-indigo-600 bg-indigo-500/10 ring-2 ring-indigo-500/30 shadow-xl' : 'border-gray-200/60 dark:border-white/10 hover:border-indigo-400/50 bg-gray-50/40 dark:bg-white/5' ?>">
-                    
+
                     <input type="radio" name="plan_code" value="<?= $pCode ?>" <?= $isSelected ? 'checked' : '' ?> id="radio-<?= $pCode ?>" class="sr-only">
 
                     <div>
@@ -127,7 +133,7 @@
                         </div>
 
                         <h3 class="font-extrabold text-sm text-gray-900 dark:text-white"><?= $e($p['name']) ?></h3>
-                        
+
                         <div class="my-3 font-mono">
                             <span class="text-2xl font-black text-gray-900 dark:text-white">$<?= number_format($p['price'], 2) ?></span>
                             <span class="text-[10px] text-gray-500">/ <?= $e($p['cycle']) ?></span>
@@ -183,7 +189,7 @@
 
         <!-- Paid Plan QR Verification Panel (NO Card Fields!) -->
         <div id="payment-panel" class="<?= ($selectedPlan !== 'trial') ? 'block' : 'hidden' ?> space-y-4">
-            
+
             <!-- Summary bar showing selected tier & price in USD and PKR -->
             <div class="p-4 rounded-2xl bg-indigo-50/60 dark:bg-white/5 border border-indigo-200/50 dark:border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div class="flex items-center gap-3">
@@ -233,13 +239,13 @@
                     </label>
 
                     <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <?php 
+                        <?php
                             $firstMethodCode = $methods[0]['code'];
                         ?>
                         <?php foreach ($methods as $m): ?>
-                            <button type="button" 
-                                    onclick="switchRegMethod('<?= $m['code'] ?>')" 
-                                    id="reg-tab-btn-<?= $m['code'] ?>" 
+                            <button type="button"
+                                    onclick="switchRegMethod('<?= $m['code'] ?>')"
+                                    id="reg-tab-btn-<?= $m['code'] ?>"
                                     class="reg-method-btn py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all <?= ($m['code'] === $firstMethodCode) ? 'border-emerald-500 bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 shadow-md ring-2 ring-emerald-500/20' : 'border-gray-200/50 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5' ?>">
                                 <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
                                 <span class="truncate"><?= $e($m['title']) ?></span>
@@ -252,15 +258,15 @@
 
                     <!-- Payment Gateway QR Details Cards -->
                     <?php foreach ($methods as $m): ?>
-                        <?php 
+                        <?php
                             $isDefault = ($m['code'] === $firstMethodCode);
                             $rate = (float) ($m['conversion_rate'] ?: 280.0);
                             $localPrice = round(($plans[$selectedPlan]['price'] ?? 89.99) * $rate);
                         ?>
-                        <div id="reg-method-panel-<?= $m['code'] ?>" 
+                        <div id="reg-method-panel-<?= $m['code'] ?>"
                              data-rate="<?= $rate ?>"
                              class="reg-method-panel <?= $isDefault ? 'block' : 'hidden' ?> mt-3 p-5 rounded-2xl bg-gray-50/60 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 space-y-4">
-                            
+
                             <div class="flex flex-col sm:flex-row items-center gap-5 pb-4 border-b border-gray-200/40 dark:border-white/10">
                                 <!-- Vector QR Code Image -->
                                 <div class="flex-shrink-0 text-center">
@@ -279,7 +285,7 @@
                                             <?= $e($m['title']) ?>
                                         </span>
                                     </div>
-                                    
+
                                     <div>
                                         <span class="text-[10px] uppercase font-bold text-gray-400 block">Account Title:</span>
                                         <span class="text-sm font-extrabold text-gray-900 dark:text-white"><?= $e($m['account_title']) ?></span>
@@ -320,11 +326,11 @@
                     <label for="transaction_id" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                         Transaction ID (TRX ID)
                     </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
                             <i data-lucide="receipt" class="w-4 h-4"></i>
                         </div>
-                        <input type="text" id="transaction_id" name="transaction_id" placeholder="e.g. 11098234712 (Optional now)" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400 font-mono font-bold uppercase">
+                        <input type="text" id="transaction_id" name="transaction_id" placeholder="e.g. 11098234712 (Optional now)" class="font-mono font-bold uppercase">
                     </div>
                     <span class="text-[10px] text-gray-400 mt-1 block">From your EasyPaisa / Bank confirmation SMS. You can also provide it later from your dashboard.</span>
                 </div>
@@ -333,11 +339,11 @@
                     <label for="sender_phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                         Sender Mobile Number (Optional)
                     </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
                             <i data-lucide="phone-call" class="w-4 h-4"></i>
                         </div>
-                        <input type="text" id="sender_phone" name="sender_phone" placeholder="0300-1234567" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400 font-mono">
+                        <input type="text" id="sender_phone" name="sender_phone" placeholder="0300-1234567" class="font-mono">
                     </div>
                 </div>
 

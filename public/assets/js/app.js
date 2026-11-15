@@ -595,6 +595,21 @@ window.scrollNavRibbon = function(amount) {
     NavRibbonScroll.scroll(amount);
 };
 
+window.togglePasswordVisibility = function(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    if (!input) return;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    if (btn) {
+        btn.innerHTML = isPassword
+            ? '<i data-lucide="eye-off" class="w-4 h-4 text-indigo-500"></i>'
+            : '<i data-lucide="eye" class="w-4 h-4 text-slate-400"></i>';
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+        }
+    }
+};
+
 // ==========================================================================
 // DOM Initialization
 // ==========================================================================

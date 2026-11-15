@@ -5,8 +5,8 @@
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1.5">
             Registered Email Address
         </label>
-        <div class="glass-input-group">
-            <div class="input-addon-box">
+        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+            <div class="input-icon-box">
                 <i data-lucide="mail" class="w-4 h-4"></i>
             </div>
             <input type="email" 
