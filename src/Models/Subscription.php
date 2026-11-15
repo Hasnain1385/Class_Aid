@@ -489,7 +489,10 @@ class Subscription
 
         if (!$isLifetime) {
             $days = $plan['days'] ?? 365;
-            $expiresAt = date('Y-m-d H:i:s', strtotime("+{$days} days"));
+            $base = (!empty($sub['expires_at']) && strtotime($sub['expires_at']) > time())
+                ? strtotime($sub['expires_at'])
+                : time();
+            $expiresAt = date('Y-m-d H:i:s', strtotime("+{$days} days", $base));
         }
 
         $planPrice = (float) (!empty($sub['pending_price']) ? $sub['pending_price'] : ($plan['price'] ?? 0.0));
@@ -508,6 +511,12 @@ class Subscription
 
         if (!$ok) {
             return false;
+        }
+
+        // Reactivate suspended user if suspended
+        $teacher = User::findById((int) $sub['user_id']);
+        if ($teacher && $teacher['status'] === 'suspended') {
+            User::update((int) $teacher['id'], ['status' => 'active']);
         }
 
         // Find or create matching invoice
@@ -546,12 +555,142 @@ class Subscription
             $inv = Invoice::findById($invId);
         }
 
-        $teacher = User::findById((int) $sub['user_id']);
         if ($teacher && $inv) {
             \App\Utils\Mailer::sendInvoiceEmail($inv, $teacher);
         }
 
         return true;
+    }
+
+    public static function extendOnInvoicePayment(int $invoiceId): bool
+    {
+        $inv = Invoice::findById($invoiceId);
+        if (!$inv) {
+            return false;
+        }
+
+        $userId = (int) $inv['user_id'];
+        $subId = !empty($inv['subscription_id']) ? (int) $inv['subscription_id'] : 0;
+        $sub = $subId > 0 ? self::findById($subId) : self::getActiveForUser($userId);
+
+        $plan = self::getPlan($inv['plan_code']) ?? self::getPlan('annual');
+        $isLifetime = ($plan['code'] === 'lifetime' || $inv['plan_code'] === 'lifetime');
+        $newStatus = $isLifetime ? 'lifetime' : 'active';
+        $days = $plan['days'] ?? 365;
+
+        if ($sub) {
+            $base = (!$isLifetime && !empty($sub['expires_at']) && strtotime($sub['expires_at']) > time())
+                ? strtotime($sub['expires_at'])
+                : time();
+            $newExpiry = $isLifetime ? null : date('Y-m-d H:i:s', strtotime("+{$days} days", $base));
+
+            self::update((int) $sub['id'], [
+                'plan_code' => $plan['code'],
+                'plan_name' => $plan['name'],
+                'billing_cycle' => $plan['cycle'],
+                'price' => (float) $inv['amount'],
+                'status' => $newStatus,
+                'expires_at' => $newExpiry,
+                'pending_plan' => null,
+                'pending_price' => null,
+                'notes' => "Auto extended on payment of Invoice #{$inv['invoice_number']} on " . date('Y-m-d H:i'),
+            ]);
+        } else {
+            $newExpiry = $isLifetime ? null : date('Y-m-d H:i:s', strtotime("+{$days} days"));
+            self::create([
+                'user_id' => $userId,
+                'plan_code' => $plan['code'],
+                'plan_name' => $plan['name'],
+                'billing_cycle' => $plan['cycle'],
+                'price' => (float) $inv['amount'],
+                'status' => $newStatus,
+                'starts_at' => date('Y-m-d H:i:s'),
+                'expires_at' => $newExpiry,
+            ]);
+        }
+
+        // Reactivate suspended user without modifying or removing any data
+        $user = User::findById($userId);
+        if ($user && $user['status'] === 'suspended') {
+            User::update($userId, ['status' => 'active']);
+        }
+
+        if ($user) {
+            \App\Utils\Mailer::sendInvoiceEmail($inv, $user);
+        }
+
+        return true;
+    }
+
+    public static function checkAndProcessRenewals(int $userId): ?array
+    {
+        $sub = self::getActiveForUser($userId);
+        if (!$sub || $sub['plan_code'] === 'lifetime') {
+            return null;
+        }
+
+        if (empty($sub['expires_at'])) {
+            return null;
+        }
+
+        $now = time();
+        $expiryTime = strtotime($sub['expires_at']);
+        $preExpiryThreshold = $expiryTime - (7 * 86400);
+        $gracePeriodEnd = $expiryTime + (7 * 86400);
+
+        // 1. Auto-generate renewal invoice 7 days before expiry date
+        if ($now >= $preExpiryThreshold) {
+            $existingUnpaid = Invoice::getUnpaidForSubscription((int) $sub['id']);
+            if (!$existingUnpaid) {
+                $plan = self::getPlan($sub['plan_code']) ?? self::getPlan('annual');
+                $invId = Invoice::create([
+                    'user_id' => $userId,
+                    'subscription_id' => (int) $sub['id'],
+                    'plan_code' => $sub['plan_code'],
+                    'plan_name' => $sub['plan_name'],
+                    'billing_cycle' => $sub['billing_cycle'] ?? 'annual',
+                    'amount' => (float) $sub['price'],
+                    'status' => 'unpaid',
+                    'issue_date' => date('Y-m-d'),
+                    'due_date' => date('Y-m-d', $gracePeriodEnd),
+                    'notes' => 'Renewal invoice generated 7 days before plan expiration. Payable within 7 days of expiry.',
+                ]);
+
+                $inv = Invoice::findById($invId);
+                $teacher = User::findById($userId);
+                if ($teacher && $inv) {
+                    \App\Utils\Mailer::sendInvoiceEmail($inv, $teacher);
+                    Announcement::create([
+                        'title' => "Renewal Invoice #{$inv['invoice_number']} Generated",
+                        'content' => "Your subscription plan ({$sub['plan_name']}) will expire on " . date('M d, Y', $expiryTime) . ". Your renewal invoice is now ready and can be paid within 7 days of plan expiry (grace period until " . date('M d, Y', $gracePeriodEnd) . ").",
+                        'type' => 'warning',
+                        'target_role' => 'teacher',
+                        'created_by' => 1,
+                    ]);
+                }
+            }
+        }
+
+        // 2. Suspension Check: if expired and past 7-day grace period, suspend user (WITHOUT REMOVING DATA)
+        if ($now > $gracePeriodEnd) {
+            $unpaid = Invoice::getUnpaidForSubscription((int) $sub['id']);
+            if ($unpaid) {
+                $user = User::findById($userId);
+                if ($user && $user['status'] !== 'suspended') {
+                    User::update($userId, ['status' => 'suspended']);
+                }
+                if ($sub['status'] !== 'expired') {
+                    self::update((int) $sub['id'], ['status' => 'expired']);
+                }
+            }
+        }
+
+        // Return active unpaid invoice if expired
+        if ($now > $expiryTime) {
+            return Invoice::getUnpaidForSubscription((int) $sub['id']);
+        }
+
+        return null;
     }
 
     public static function rejectPayment(int $subId, string $reason = ''): bool

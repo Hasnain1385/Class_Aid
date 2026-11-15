@@ -19,9 +19,14 @@
     </div>
 
     <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1.5">
-            Password
-        </label>
+        <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                Password
+            </label>
+            <a href="/forgot-password" class="text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-semibold">
+                Forgot Password?
+            </a>
+        </div>
         <div class="relative">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                 <i data-lucide="lock" class="w-4 h-4"></i>

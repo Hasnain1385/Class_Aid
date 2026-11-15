@@ -229,6 +229,36 @@ class AuthController
         Response::redirect('/login');
     }
 
+    public function showForgotPassword(Request $request): void
+    {
+        View::render('auth.forgot_password', [
+            'title' => 'Forgot Password',
+            'subtitle' => 'Enter your teacher email to receive a password reset link',
+            'maxWidth' => 'max-w-md',
+        ], 'auth');
+    }
+
+    public function sendResetLink(Request $request): void
+    {
+        $email = strtolower(trim((string) $request->input('email', '')));
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            Session::flash('error', 'Please enter a valid email address.');
+            Response::redirect('/forgot-password');
+            return;
+        }
+
+        $user = User::findByEmail($email);
+        if ($user) {
+            $token = User::generateResetToken((int) $user['id']);
+            $baseUrl = $request->getBaseUrl();
+            $resetUrl = "{$baseUrl}/reset-password?token=" . urlencode($token);
+            \App\Utils\Mailer::sendPasswordResetEmail($user, $resetUrl);
+        }
+
+        Session::flash('success', 'If an account exists for this email, a password reset link has been dispatched to your inbox.');
+        Response::redirect('/login');
+    }
+
     public function showResetPassword(Request $request): void
     {
         $token = (string) $request->query('token', '');

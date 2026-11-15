@@ -135,4 +135,109 @@ class AttendanceController
             'teacher' => $teacher,
         ], 'print');
     }
+
+    public function reports(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classes = SchoolClass::getAllByTeacher($teacherId);
+
+        $defaultClassId = !empty($classes) ? (int) $classes[0]['id'] : 0;
+        $classId = (int) $request->query('class_id', (string) $defaultClassId);
+
+        $class = null;
+        if ($classId > 0) {
+            $class = SchoolClass::findById($classId);
+            if (!$class || ((int)($class['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin())) {
+                Session::flash('error', 'Class not found or access denied.');
+                Response::redirect('/attendance');
+                return;
+            }
+        }
+
+        $allStudents = $classId > 0 ? Student::getByClass($classId) : [];
+
+        $dateFrom = (string) $request->query('date_from', date('Y-m-01'));
+        $dateTo = (string) $request->query('date_to', date('Y-m-d'));
+        $scope = (string) $request->query('scope', 'all'); // 'all', 'single', 'selected'
+        $singleStudentId = (int) $request->query('student_id', 0);
+
+        $rawSelected = $request->query('students', '');
+        $selectedIds = [];
+        if (is_array($rawSelected)) {
+            $selectedIds = array_map('intval', $rawSelected);
+        } elseif (!empty($rawSelected)) {
+            $selectedIds = array_map('intval', explode(',', (string) $rawSelected));
+        }
+
+        $filterStudentIds = [];
+        if ($scope === 'single' && $singleStudentId > 0) {
+            $filterStudentIds = [$singleStudentId];
+        } elseif ($scope === 'selected' && !empty($selectedIds)) {
+            $filterStudentIds = $selectedIds;
+        }
+
+        $report = null;
+        if ($classId > 0) {
+            $report = Attendance::getCustomReport($classId, $dateFrom, $dateTo, $filterStudentIds);
+        }
+
+        View::render('attendance.reports', [
+            'title' => 'Class Attendance Records & Intelligence Dashboard',
+            'classes' => $classes,
+            'selectedClass' => $class,
+            'allStudents' => $allStudents,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'scope' => $scope,
+            'singleStudentId' => $singleStudentId,
+            'selectedIds' => $selectedIds,
+            'report' => $report,
+        ]);
+    }
+
+    public function printReport(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classId = (int) $request->query('class_id', 0);
+        $class = SchoolClass::findById($classId);
+
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Class not found or access denied.');
+            Response::redirect('/attendance');
+            return;
+        }
+
+        $dateFrom = (string) $request->query('date_from', date('Y-m-01'));
+        $dateTo = (string) $request->query('date_to', date('Y-m-d'));
+        $scope = (string) $request->query('scope', 'all');
+        $singleStudentId = (int) $request->query('student_id', 0);
+
+        $rawSelected = $request->query('students', '');
+        $selectedIds = [];
+        if (is_array($rawSelected)) {
+            $selectedIds = array_map('intval', $rawSelected);
+        } elseif (!empty($rawSelected)) {
+            $selectedIds = array_map('intval', explode(',', (string) $rawSelected));
+        }
+
+        $filterStudentIds = [];
+        if ($scope === 'single' && $singleStudentId > 0) {
+            $filterStudentIds = [$singleStudentId];
+        } elseif ($scope === 'selected' && !empty($selectedIds)) {
+            $filterStudentIds = $selectedIds;
+        }
+
+        $report = Attendance::getCustomReport($classId, $dateFrom, $dateTo, $filterStudentIds);
+        $teacher = Session::user();
+
+        View::render('attendance.print_report', [
+            'title' => 'Attendance Audit Report - ' . $class['name'] . ' ' . $class['section'],
+            'class' => $class,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'scope' => $scope,
+            'report' => $report,
+            'teacher' => $teacher,
+        ], 'print');
+    }
 }

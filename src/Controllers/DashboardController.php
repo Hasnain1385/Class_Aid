@@ -61,4 +61,61 @@ class DashboardController
             'reminders' => $reminders,
         ]);
     }
+
+    public function overdueNotificationsApi(Request $request): void
+    {
+        $userId = Session::userId();
+        if ($userId <= 0) {
+            Response::json(['success' => false, 'items' => []], 401);
+            return;
+        }
+
+        $items = [];
+        $today = date('Y-m-d');
+        $nowTime = date('H:i');
+
+        // 1. Overdue parent call follow-ups
+        $followups = ParentCallLog::getPendingFollowups($userId);
+        foreach ($followups as $f) {
+            if (!empty($f['follow_up_date']) && $f['follow_up_date'] <= $today) {
+                $isToday = ($f['follow_up_date'] === $today);
+                $items[] = [
+                    'id' => 'call_' . $f['id'],
+                    'type' => 'call_followup',
+                    'title' => ($isToday ? 'Scheduled Follow-up Today: ' : 'Overdue Parent Follow-up: ') . $f['first_name'] . ' ' . $f['last_name'],
+                    'message' => 'Follow-up commitment with ' . $f['contact_person_name'] . ' (' . $f['call_category'] . ') due ' . date('M d', strtotime($f['follow_up_date'])) . '.',
+                    'url' => '/calls?search=' . urlencode($f['first_name']),
+                    'due' => $f['follow_up_date'],
+                    'priority' => 'high',
+                ];
+            }
+        }
+
+        // 2. Overdue tasks / reminders
+        $allReminders = Reminder::getByUser($userId);
+        foreach ($allReminders as $r) {
+            if ($r['status'] === 'pending') {
+                $rDate = $r['due_date'];
+                $rTime = $r['due_time'];
+                $isOverdue = ($rDate < $today) || ($rDate === $today && !empty($rTime) && $rTime <= $nowTime);
+                if ($isOverdue) {
+                    $items[] = [
+                        'id' => 'reminder_' . $r['id'],
+                        'type' => 'task_reminder',
+                        'title' => 'Overdue Task: ' . $r['title'],
+                        'message' => 'Task was due ' . date('M d', strtotime($rDate)) . (!empty($rTime) ? ' at ' . $rTime : '') . '. Tap to review.',
+                        'url' => '/reminders',
+                        'due' => $rDate . (!empty($rTime) ? ' ' . $rTime : ''),
+                        'priority' => $r['priority'] ?? 'medium',
+                    ];
+                }
+            }
+        }
+
+        Response::json([
+            'success' => true,
+            'count' => count($items),
+            'items' => $items,
+        ]);
+    }
 }

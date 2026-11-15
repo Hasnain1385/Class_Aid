@@ -324,6 +324,10 @@
                     <i data-lucide="calendar-check" class="w-4 h-4 text-blue-500"></i>
                     <span>Attendance</span>
                 </a>
+                <a href="/attendance/reports" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-500"></i>
+                    <span>Attendance Reports</span>
+                </a>
                 <a href="/students" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
                     <i data-lucide="users" class="w-4 h-4 text-violet-500"></i>
                     <span>Students</span>

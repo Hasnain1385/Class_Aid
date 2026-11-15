@@ -92,7 +92,30 @@ class SchoolClass
     public static function delete(int $id): bool
     {
         $pdo = Database::getConnection();
-        $stmt = $pdo->prepare("DELETE FROM classes WHERE id = :id");
-        return $stmt->execute(['id' => $id]);
+        $pdo->beginTransaction();
+        try {
+            // Get student IDs belonging to this class
+            $stmt = $pdo->prepare("SELECT id FROM students WHERE class_id = :class_id");
+            $stmt->execute(['class_id' => $id]);
+            $studentIds = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            if (!empty($studentIds)) {
+                $inClause = implode(',', array_map('intval', $studentIds));
+                $pdo->exec("DELETE FROM attendance WHERE student_id IN ({$inClause})");
+                $pdo->exec("DELETE FROM parent_call_logs WHERE student_id IN ({$inClause})");
+                $pdo->exec("DELETE FROM marks WHERE student_id IN ({$inClause})");
+                $pdo->exec("DELETE FROM students WHERE id IN ({$inClause})");
+            }
+
+            $pdo->prepare("DELETE FROM attendance WHERE class_id = :id")->execute(['id' => $id]);
+            $pdo->prepare("DELETE FROM subjects WHERE class_id = :id")->execute(['id' => $id]);
+            $del = $pdo->prepare("DELETE FROM classes WHERE id = :id")->execute(['id' => $id]);
+
+            $pdo->commit();
+            return $del;
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
     }
 }

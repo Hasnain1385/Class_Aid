@@ -406,6 +406,116 @@ function openWhatsApp(phone, studentName, adminId) {
 }
 
 // ==========================================================================
+// Browser Push & Overdue Notifications Engine
+// ==========================================================================
+const OverdueNotifications = {
+    checkInterval: 60000, // 60 seconds
+    timer: null,
+
+    init() {
+        if (!document.getElementById('notifications-wrapper')) return;
+
+        // Auto request permission on first interaction if supported and default
+        if ('Notification' in window && Notification.permission === 'default') {
+            document.addEventListener('click', () => {
+                if (Notification.permission === 'default' && !sessionStorage.getItem('notif_prompted')) {
+                    sessionStorage.setItem('notif_prompted', 'true');
+                    Notification.requestPermission();
+                }
+            }, { once: true });
+        }
+
+        this.fetchOverdue();
+        this.timer = setInterval(() => this.fetchOverdue(), this.checkInterval);
+    },
+
+    async fetchOverdue() {
+        try {
+            const res = await fetch('/api/notifications/overdue', {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.success || !Array.isArray(data.items)) return;
+
+            const alertedMap = JSON.parse(sessionStorage.getItem('alerted_overdue_ids') || '{}');
+            let hasNewAlert = false;
+
+            data.items.forEach(item => {
+                if (!alertedMap[item.id]) {
+                    alertedMap[item.id] = Date.now();
+                    hasNewAlert = true;
+                    this.notifyUser(item);
+                }
+            });
+
+            if (hasNewAlert) {
+                sessionStorage.setItem('alerted_overdue_ids', JSON.stringify(alertedMap));
+            }
+        } catch (e) {
+            // Ignore background network error
+        }
+    },
+
+    notifyUser(item) {
+        // 1. Native Browser Push Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+                const notif = new Notification(item.title, {
+                    body: item.message,
+                    icon: '/favicon.ico',
+                    tag: item.id
+                });
+                notif.onclick = () => {
+                    window.focus();
+                    if (item.url) window.location.href = item.url;
+                };
+            } catch (err) {
+                // Ignore restriction
+            }
+        }
+
+        // 2. In-App Liquid Glass Toast Alert
+        this.showInAppToast(item);
+    },
+
+    showInAppToast(item) {
+        let toastContainer = document.getElementById('class-aid-toast-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'class-aid-toast-container';
+            toastContainer.className = 'fixed top-16 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none';
+            document.body.appendChild(toastContainer);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'pointer-events-auto p-4 rounded-2xl glass-card bg-white/95 dark:bg-slate-900/95 border border-indigo-500/40 shadow-2xl flex items-start gap-3 animate-in slide-in-from-top-4 duration-300';
+        toast.innerHTML = `
+            <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="${item.type === 'call_followup' ? 'phone-outgoing' : 'calendar-clock'}" class="w-4 h-4"></i>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h4 class="text-xs font-bold text-slate-900 dark:text-white">${item.title}</h4>
+                <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">${item.message}</p>
+                ${item.url ? `<a href="${item.url}" class="inline-block mt-2 text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline">View & Settle &rarr;</a>` : ''}
+            </div>
+            <button type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200" onclick="this.parentElement.remove()">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+            </button>
+        `;
+        toastContainer.appendChild(toast);
+        if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
+            lucide.createIcons();
+        }
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'transition-opacity');
+            setTimeout(() => toast.remove(), 400);
+        }, 8000);
+    }
+};
+
+// ==========================================================================
 // DOM Initialization
 // ==========================================================================
 function initApp() {
@@ -413,6 +523,7 @@ function initApp() {
     applyTheme();
     initSearch();
     initAttendanceToggles();
+    OverdueNotifications.init();
     if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
         lucide.createIcons();
     }

@@ -73,7 +73,8 @@ class Router
                         $exemptPrefixes = [
                             '/subscription',
                             '/profile',
-                            '/logout'
+                            '/logout',
+                            '/api/notifications'
                         ];
 
                         $isExempt = false;
@@ -86,9 +87,31 @@ class Router
 
                         if (!$isExempt) {
                             $userId = (int) Session::userId();
+                            // Run renewal checks (7-day pre-expiry invoice generation & 7-day grace period suspension)
+                            $unpaidInvoice = \App\Models\Subscription::checkAndProcessRenewals($userId);
+
+                            $user = \App\Models\User::findById($userId);
+                            $isSuspended = ($user && $user['status'] === 'suspended');
+
+                            if ($isSuspended) {
+                                Session::flash('error', 'Your account is suspended due to an overdue renewal invoice. All your classroom records and student marks are completely safe and preserved. Settle your invoice to immediately restore full access.');
+                                if ($unpaidInvoice) {
+                                    Response::redirect('/subscription/invoice/' . $unpaidInvoice['id']);
+                                } else {
+                                    Response::redirect('/subscription');
+                                }
+                                return;
+                            }
+
                             if (!\App\Models\Subscription::isUserUnlocked($userId)) {
-                                Session::flash('warning', 'Payment verification required. Your workspace features are locked until your subscription is active.');
-                                Response::redirect('/subscription/paywall');
+                                if ($unpaidInvoice) {
+                                    Session::flash('warning', 'Your plan has expired. Please settle your renewal invoice within the 7-day grace period to continue uninterrupted.');
+                                    Response::redirect('/subscription/invoice/' . $unpaidInvoice['id']);
+                                } else {
+                                    Session::flash('warning', 'Payment verification required. Your workspace features are locked until your subscription is active.');
+                                    Response::redirect('/subscription/paywall');
+                                }
+                                return;
                             }
                         }
                     }

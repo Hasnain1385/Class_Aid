@@ -114,6 +114,34 @@ class Invoice
         return $row ?: null;
     }
 
+    public static function getUnpaidForSubscription(int $subId): ?array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT * FROM invoices 
+            WHERE subscription_id = :subId AND status = 'unpaid'
+            ORDER BY id DESC 
+            LIMIT 1
+        ");
+        $stmt->execute(['subId' => $subId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
+    public static function getUnpaidForUser(int $userId): ?array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT * FROM invoices 
+            WHERE user_id = :user_id AND status = 'unpaid'
+            ORDER BY id DESC 
+            LIMIT 1
+        ");
+        $stmt->execute(['user_id' => $userId]);
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public static function getByUser(int $userId): array
     {
         $pdo = Database::getConnection();
@@ -173,9 +201,8 @@ class Invoice
         $stmt = $pdo->prepare("UPDATE invoices SET status = 'paid', paid_at = :paid_at {$refClause} WHERE id = :id");
         $ok = $stmt->execute($params);
 
-        if ($ok && !empty($inv['subscription_id'])) {
-            $subStmt = $pdo->prepare("UPDATE subscriptions SET status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = :sub_id AND status = 'pending_verification'");
-            $subStmt->execute(['sub_id' => $inv['subscription_id']]);
+        if ($ok) {
+            Subscription::extendOnInvoicePayment($id);
         }
 
         return $ok;

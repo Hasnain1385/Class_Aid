@@ -56,13 +56,13 @@
         <?= $csrf() ?>
         <input type="hidden" name="date" value="<?= $e($date) ?>">
 
-        <div class="space-y-2.5">
+        <div class="space-y-1.5">
             <?php foreach ($students as $stu): ?>
                 <?php 
                     $currentStatus = $stu['current_status'] ?? 'P';
                     $consecutive = (int) ($stu['consecutive_absences'] ?? 0);
                 ?>
-                <div class="glass-card p-3.5 sm:p-4 attendance-student-row flex flex-col lg:flex-row lg:items-center justify-between gap-3 <?= $consecutive >= 3 ? 'border-rose-500/50 bg-rose-50/30 dark:bg-rose-950/20' : '' ?>">
+                <div class="glass-card px-3 py-2 sm:px-4 sm:py-2 attendance-student-row flex flex-col md:flex-row md:items-center justify-between gap-2 <?= $consecutive >= 3 ? 'border-rose-500/50 bg-rose-50/20 dark:bg-rose-950/20' : '' ?>">
                     
                     <!-- Hidden Status Input -->
                     <input type="hidden" 
@@ -70,93 +70,91 @@
                            value="<?= $currentStatus ?>" 
                            class="attendance-status-input">
 
-                    <!-- Student Info & Chronic Absence Flag -->
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-sm text-slate-900 dark:text-white">
-                                <?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?>
-                            </span>
-                            <span class="font-mono text-xs font-bold text-indigo-500 tabular-nums">
-                                <?= $e($stu['student_admin_id']) ?>
-                            </span>
-
-                            <!-- 3+ Consecutive Absences Flag -->
-                            <?php if ($consecutive >= 3): ?>
-                                <span class="text-xs px-2 py-0.5 rounded-full badge-rose font-bold flex items-center gap-1 animate-pulse">
-                                    <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>
-                                    <span><?= $consecutive ?> Consecutive Absences!</span>
-                                </span>
-                            <?php endif; ?>
+                    <!-- Student Info Line (Compact) -->
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                        <div class="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs flex items-center justify-center flex-shrink-0">
+                            <?= strtoupper(substr($stu['first_name'], 0, 1)) ?>
                         </div>
 
-                        <!-- Guardian & Quick WhatsApp / Call actions -->
-                        <div class="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
-                            <span>Guardian: <strong class="text-slate-700 dark:text-slate-300"><?= $e($stu['primary_guardian_name']) ?></strong></span>
-                            <span>•</span>
-                            <span class="font-mono tabular-nums"><?= $e($stu['primary_phone']) ?></span>
-                            <button type="button" 
-                                    onclick="openWhatsApp('<?= $e($stu['primary_phone']) ?>', '<?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?>', '<?= $e($stu['student_admin_id']) ?>')"
-                                    class="text-emerald-500 hover:text-emerald-600 inline-flex items-center gap-1 font-semibold">
-                                <i data-lucide="message-circle" class="w-3.5 h-3.5"></i>
-                                <span>WhatsApp</span>
-                            </button>
-                            <?php if ($consecutive >= 3): ?>
-                                <a href="/calls/create?student_id=<?= $stu['id'] ?>&category=Absenteeism" 
-                                   class="text-rose-500 hover:underline font-semibold flex items-center gap-1">
-                                    <i data-lucide="phone-outgoing" class="w-3.5 h-3.5"></i>
-                                    <span>Log Call</span>
-                                </a>
-                            <?php endif; ?>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                                    <?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?>
+                                </span>
+                                <span class="font-mono text-[11px] font-bold text-indigo-500 tabular-nums">
+                                    <?= $e($stu['student_admin_id']) ?>
+                                </span>
+                                <?php if ($consecutive >= 3): ?>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded-full badge-rose font-bold flex items-center gap-1 animate-pulse">
+                                        <i data-lucide="alert-triangle" class="w-3 h-3"></i>
+                                        <span><?= $consecutive ?> Consec. Absent</span>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                                <span>G: <strong class="text-slate-700 dark:text-slate-300"><?= $e($stu['primary_guardian_name']) ?></strong></span>
+                                <span>•</span>
+                                <span class="font-mono tabular-nums"><?= $e($stu['primary_phone']) ?></span>
+                                <button type="button" 
+                                        onclick="openWhatsApp('<?= $e($stu['primary_phone']) ?>', '<?= $e($stu['first_name'] . ' ' . $stu['last_name']) ?>', '<?= $e($stu['student_admin_id']) ?>')"
+                                        class="text-emerald-500 hover:text-emerald-600 inline-flex items-center gap-0.5 font-semibold text-[10px]" title="Chat on WhatsApp">
+                                    <i data-lucide="message-circle" class="w-3 h-3"></i>
+                                    <span>WA</span>
+                                </button>
+                                <?php if ($consecutive >= 3): ?>
+                                    <a href="/calls/create?student_id=<?= $stu['id'] ?>&category=Absenteeism" 
+                                       class="text-rose-500 hover:underline font-semibold flex items-center gap-0.5 text-[10px]">
+                                        <i data-lucide="phone-outgoing" class="w-3 h-3"></i>
+                                        <span>Call</span>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 1-Tap Toggle Buttons & Remarks -->
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0">
-                        
-                        <!-- 4 Status Toggle Buttons -->
-                        <div class="grid grid-cols-4 gap-1.5 sm:w-80">
-                            
+                    <!-- 1-Tap Toggle Buttons & Remarks (Compact) -->
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <div class="grid grid-cols-4 gap-1 w-64 sm:w-72">
                             <!-- Present [P] -->
                             <button type="button" 
                                     data-status="P" 
-                                    class="att-toggle-btn py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'P' ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700' ?>">
-                                <span class="font-extrabold text-xs">P</span>
-                                <span class="text-xs font-medium">Present</span>
+                                    class="att-toggle-btn py-1 px-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'P' ? 'bg-emerald-600 text-white ring-2 ring-emerald-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700' ?>">
+                                <span class="font-black text-xs">P</span>
+                                <span class="text-[11px] font-medium hidden sm:inline">Pres</span>
                             </button>
 
                             <!-- Absent [A] -->
                             <button type="button" 
                                     data-status="A" 
-                                    class="att-toggle-btn py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'A' ? 'bg-rose-600 text-white ring-2 ring-rose-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-400 border border-slate-200 dark:border-slate-700' ?>">
-                                <span class="font-extrabold text-xs">A</span>
-                                <span class="text-xs font-medium">Absent</span>
+                                    class="att-toggle-btn py-1 px-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'A' ? 'bg-rose-600 text-white ring-2 ring-rose-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-rose-700 dark:text-rose-400 border border-slate-200 dark:border-slate-700' ?>">
+                                <span class="font-black text-xs">A</span>
+                                <span class="text-[11px] font-medium hidden sm:inline">Abs</span>
                             </button>
 
                             <!-- Late [L] -->
                             <button type="button" 
                                     data-status="L" 
-                                    class="att-toggle-btn py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'L' ? 'bg-amber-600 text-white ring-2 ring-amber-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700' ?>">
-                                <span class="font-extrabold text-xs">L</span>
-                                <span class="text-xs font-medium">Late</span>
+                                    class="att-toggle-btn py-1 px-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'L' ? 'bg-amber-600 text-white ring-2 ring-amber-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-amber-700 dark:text-amber-400 border border-slate-200 dark:border-slate-700' ?>">
+                                <span class="font-black text-xs">L</span>
+                                <span class="text-[11px] font-medium hidden sm:inline">Late</span>
                             </button>
 
                             <!-- Excused [E] -->
                             <button type="button" 
                                     data-status="E" 
-                                    class="att-toggle-btn py-1.5 px-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'E' ? 'bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-blue-400 border border-slate-200 dark:border-slate-700' ?>">
-                                <span class="font-extrabold text-xs">E</span>
-                                <span class="text-xs font-medium">Excused</span>
+                                    class="att-toggle-btn py-1 px-1.5 rounded-lg text-xs font-bold transition-all flex items-center justify-center gap-1 <?= $currentStatus === 'E' ? 'bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-slate-900 shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-blue-700 dark:text-blue-400 border border-slate-200 dark:border-slate-700' ?>">
+                                <span class="font-black text-xs">E</span>
+                                <span class="text-[11px] font-medium hidden sm:inline">Exc</span>
                             </button>
-
                         </div>
 
                         <!-- Remarks Input -->
                         <input type="text" 
                                name="attendance[<?= $stu['id'] ?>][remarks]" 
                                value="<?= $e($stu['current_remarks'] ?? '') ?>" 
-                               placeholder="Remarks (optional)" 
-                               class="w-full sm:w-40 px-3 py-1.5 text-xs rounded-lg glass-input">
-
+                               placeholder="Note..." 
+                               class="w-24 sm:w-32 px-2.5 py-1 text-xs rounded-lg glass-input">
                     </div>
 
                 </div>

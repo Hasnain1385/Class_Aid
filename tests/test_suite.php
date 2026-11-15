@@ -641,6 +641,184 @@ it('Dispatches announcements with audience filtering (all vs teacher)', function
 });
 
 // -------------------------------------------------------------
+// Group 12: Dynamic Domains, Attendance Dashboard & SaaS Lifecycle
+// -------------------------------------------------------------
+echo "\n\033[1m[12. Dynamic Domains, Attendance Dashboard & SaaS Lifecycles]\033[0m\n";
+
+it('Request resolves base URL dynamically across custom domains and reverse proxies', function () {
+    // 1. Standard custom domain with HTTPS
+    $_SERVER['HTTP_HOST'] = 'portal.institution.edu';
+    $_SERVER['HTTPS'] = 'on';
+    unset($_SERVER['HTTP_X_FORWARDED_PROTO'], $_SERVER['SERVER_PORT']);
+    $req1 = new Request();
+    if ($req1->getBaseUrl() !== 'https://portal.institution.edu') {
+        throw new \Exception("Expected https://portal.institution.edu, got " . $req1->getBaseUrl());
+    }
+
+    // 2. Reverse proxy with X-Forwarded-Proto
+    $_SERVER['HTTP_HOST'] = 'classaid.myschool.com:8443';
+    unset($_SERVER['HTTPS']);
+    $_SERVER['HTTP_X_FORWARDED_PROTO'] = 'https';
+    $req2 = new Request();
+    if ($req2->getBaseUrl() !== 'https://classaid.myschool.com:8443') {
+        throw new \Exception("Proxy HTTPS detection failed: " . $req2->getBaseUrl());
+    }
+
+    // 3. Clean up
+    unset($_SERVER['HTTP_HOST'], $_SERVER['HTTPS'], $_SERVER['HTTP_X_FORWARDED_PROTO']);
+});
+
+it('Attendance getCustomReport generates scoped analytics for whole class, single student, and multi-selection', function () use ($testHomeClassId, $testStudentId) {
+    // Record another student in this class
+    $secondStuId = Student::create([
+        'student_admin_id' => 'ADM-RPT-002',
+        'class_id' => $testHomeClassId,
+        'first_name' => 'Tariq',
+        'last_name' => 'Mahmood',
+        'primary_guardian_name' => 'Mr. Mahmood',
+        'primary_phone' => '+1 555-0202',
+    ]);
+
+    $d1 = date('Y-m-d', strtotime('-5 days'));
+    $d2 = date('Y-m-d', strtotime('-4 days'));
+
+    Attendance::record($testStudentId, $testHomeClassId, $d1, 'P');
+    Attendance::record($secondStuId, $testHomeClassId, $d1, 'A');
+
+    Attendance::record($testStudentId, $testHomeClassId, $d2, 'P');
+    Attendance::record($secondStuId, $testHomeClassId, $d2, 'P');
+
+    $from = date('Y-m-d', strtotime('-7 days'));
+    $to = date('Y-m-d');
+
+    // 1. Whole class report
+    $fullReport = Attendance::getCustomReport($testHomeClassId, $from, $to, []);
+    if (count($fullReport['students']) < 2) {
+        throw new \Exception("Expected at least 2 students in full report");
+    }
+    if ($fullReport['summary']['total_sessions_taken'] < 2) {
+        throw new \Exception("Expected at least 2 sessions taken");
+    }
+
+    // 2. Single student report
+    $singleReport = Attendance::getCustomReport($testHomeClassId, $from, $to, [$testStudentId]);
+    if (count($singleReport['students']) !== 1 || (int)$singleReport['students'][0]['id'] !== $testStudentId) {
+        throw new \Exception("Single student filter mismatch");
+    }
+    if ($singleReport['students'][0]['present_count'] < 2) {
+        throw new \Exception("Student should have at least 2 present marks");
+    }
+
+    // 3. Multi-select report
+    $multiReport = Attendance::getCustomReport($testHomeClassId, $from, $to, [$testStudentId, $secondStuId]);
+    if (count($multiReport['students']) !== 2) {
+        throw new \Exception("Multi-selection should include both students");
+    }
+});
+
+it('Auto plan extension extends active plans from existing expiry date and reactivates suspended users', function () {
+    // Create teacher
+    $subTeacherId = User::create([
+        'name' => 'Renewal Teacher',
+        'email' => 'renewal_' . time() . '@school.test',
+        'password' => 'Password123!',
+        'role' => 'teacher',
+        'status' => 'suspended', // Suspended account
+    ]);
+
+    // Active subscription expiring in 15 days
+    $initialExpiry = date('Y-m-d H:i:s', strtotime('+15 days'));
+    $subId = Subscription::create([
+        'user_id' => $subTeacherId,
+        'plan_code' => 'monthly',
+        'price' => 9.99,
+        'status' => 'active',
+        'starts_at' => date('Y-m-d H:i:s'),
+        'expires_at' => $initialExpiry,
+    ]);
+
+    // Create and mark paid invoice for 30-day monthly plan
+    $invId = Invoice::create([
+        'user_id' => $subTeacherId,
+        'subscription_id' => $subId,
+        'plan_code' => 'monthly',
+        'amount' => 9.99,
+        'status' => 'unpaid',
+    ]);
+
+    $paid = Invoice::markPaid($invId, 'TRX-PAID-001');
+    if (!$paid) {
+        throw new \Exception("Failed to mark invoice as paid");
+    }
+
+    $updatedSub = Subscription::findById($subId);
+    $expectedMinExpiry = strtotime('+44 days'); // 15 days + 30 days = 45 days
+    if (strtotime($updatedSub['expires_at']) < $expectedMinExpiry) {
+        throw new \Exception("Auto plan extension did not extend from existing future expiry date");
+    }
+
+    $updatedUser = User::findById($subTeacherId);
+    if ($updatedUser['status'] !== 'active') {
+        throw new \Exception("Suspended user was not reactivated upon invoice payment");
+    }
+});
+
+it('Auto-generates renewal invoices 7 days before expiry and suspends past grace period without removing data', function () {
+    $teacherId = User::create([
+        'name' => 'Expiring Teacher',
+        'email' => 'expiring_' . time() . '@school.test',
+        'password' => 'Password123!',
+        'role' => 'teacher',
+        'status' => 'active',
+    ]);
+
+    // Subscription expiring in 5 days (within 7-day pre-expiry window)
+    $expiringSoon = date('Y-m-d H:i:s', strtotime('+5 days'));
+    $subId = Subscription::create([
+        'user_id' => $teacherId,
+        'plan_code' => 'annual',
+        'price' => 89.99,
+        'status' => 'active',
+        'starts_at' => date('Y-m-d H:i:s', strtotime('-360 days')),
+        'expires_at' => $expiringSoon,
+    ]);
+
+    // Trigger renewal engine
+    Subscription::checkAndProcessRenewals($teacherId);
+
+    // Verify invoice was generated
+    $unpaid = Invoice::getUnpaidForSubscription($subId);
+    if (!$unpaid) {
+        throw new \Exception("Renewal invoice was not automatically generated 7 days before expiry");
+    }
+    // Verify due date has 7 days grace period after expiry
+    $expectedDueDate = date('Y-m-d', strtotime($expiringSoon . ' +7 days'));
+    if ($unpaid['due_date'] !== $expectedDueDate) {
+        throw new \Exception("Invoice due date should be 7 days grace period after expiry date: expected {$expectedDueDate}, got {$unpaid['due_date']}");
+    }
+
+    // Now test past grace period (expired 10 days ago, past 7 days grace)
+    $pastGraceExpiry = date('Y-m-d H:i:s', strtotime('-10 days'));
+    Subscription::update($subId, [
+        'expires_at' => $pastGraceExpiry,
+        'status' => 'active',
+    ]);
+
+    Subscription::checkAndProcessRenewals($teacherId);
+
+    // Verify account is suspended WITHOUT deleting data
+    $suspendedUser = User::findById($teacherId);
+    if ($suspendedUser['status'] !== 'suspended') {
+        throw new \Exception("User should be suspended past 7 days grace period");
+    }
+
+    // Verify user record and subscription still exist intact
+    if (Subscription::findById($subId) === null) {
+        throw new \Exception("Subscription must not be deleted upon suspension");
+    }
+});
+
+// -------------------------------------------------------------
 // Group 11: In-Place Update Module & GitHub Release Engine
 // -------------------------------------------------------------
 echo "\n\033[1m[11. In-Place Update Module & GitHub Release Engine]\033[0m\n";

@@ -71,6 +71,21 @@ class Request
         return strtolower($requestedWith) === 'xmlhttprequest' || $this->isJson();
     }
 
+    public function getBaseUrl(): string
+    {
+        $httpHost = $this->server['HTTP_HOST'] ?? '';
+        if (!empty($httpHost)) {
+            $isHttps = (!empty($this->server['HTTPS']) && $this->server['HTTPS'] !== 'off')
+                || (isset($this->server['HTTP_X_FORWARDED_PROTO']) && $this->server['HTTP_X_FORWARDED_PROTO'] === 'https')
+                || (isset($this->server['SERVER_PORT']) && (int) $this->server['SERVER_PORT'] === 443);
+            $scheme = $isHttps ? 'https://' : 'http://';
+            return $scheme . $httpHost;
+        }
+
+        $configured = (string) Config::get('APP_URL', 'http://localhost:8000');
+        return rtrim($configured, '/');
+    }
+
     public function getPath(): string
     {
         return $this->path;

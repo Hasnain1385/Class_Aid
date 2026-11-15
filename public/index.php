@@ -97,6 +97,8 @@ $router->get('/login', [AuthController::class, 'showLogin'], ['guest']);
 $router->post('/login', [AuthController::class, 'login'], ['guest']);
 $router->get('/register', [AuthController::class, 'showRegister'], ['guest']);
 $router->post('/register', [AuthController::class, 'register'], ['guest']);
+$router->get('/forgot-password', [AuthController::class, 'showForgotPassword'], ['guest']);
+$router->post('/forgot-password', [AuthController::class, 'sendResetLink'], ['guest']);
 $router->get('/reset-password', [AuthController::class, 'showResetPassword'], ['guest']);
 $router->post('/reset-password', [AuthController::class, 'resetPassword'], ['guest']);
 $router->get('/logout', [AuthController::class, 'logout']);
@@ -192,15 +194,25 @@ $router->get('/calls/export/csv', [CallLogController::class, 'exportCsv'], ['aut
 $router->get('/calls/print/student/{id}', [CallLogController::class, 'printStudent'], ['auth']);
 $router->get('/calls/print/class/{id}', [CallLogController::class, 'printClass'], ['auth']);
 
-// --- Attendance Register Routes ---
+// --- Attendance Register & Reports Routes ---
 $router->get('/attendance', [AttendanceController::class, 'index'], ['auth']);
 $router->get('/attendance/sheet/{id}', [AttendanceController::class, 'sheet'], ['auth']);
 $router->post('/attendance/sheet/{id}', [AttendanceController::class, 'save'], ['auth']);
+$router->get('/attendance/reports', [AttendanceController::class, 'reports'], ['auth']);
+$router->get('/attendance/print/report', [AttendanceController::class, 'printReport'], ['auth']);
+$router->get('/attendance/print/sheet/{id}', [AttendanceController::class, 'printSheet'], ['auth']);
 
 // --- Classes & Subjects Management Routes ---
 $router->get('/classes', [ClassController::class, 'index'], ['auth']);
 $router->post('/classes', [ClassController::class, 'store'], ['auth']);
+$router->post('/classes/update/{id}', [ClassController::class, 'update'], ['auth']);
+$router->post('/classes/delete/{id}', [ClassController::class, 'delete'], ['auth']);
 $router->post('/classes/subjects', [ClassController::class, 'storeSubject'], ['auth']);
+$router->post('/classes/subjects/delete/{id}', [ClassController::class, 'deleteSubject'], ['auth']);
+$router->post('/classes/clean-mock-data', [ClassController::class, 'cleanMockData'], ['auth']);
+
+// --- Overdue Task & Parent Followup Notifications API ---
+$router->get('/api/notifications/overdue', [DashboardController::class, 'overdueNotificationsApi'], ['auth']);
 
 // --- Examinations & Results Routes ---
 $router->get('/results', [ResultController::class, 'index'], ['auth']);

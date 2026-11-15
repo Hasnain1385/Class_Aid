@@ -194,8 +194,8 @@ class AdminController
         }
 
         $token = User::generateResetToken($tId);
-        $appUrl = rtrim((string) Config::get('APP_URL', 'http://localhost:8000'), '/');
-        $resetUrl = "{$appUrl}/reset-password?token=" . urlencode($token);
+        $baseUrl = $request->getBaseUrl();
+        $resetUrl = "{$baseUrl}/reset-password?token=" . urlencode($token);
 
         Mailer::sendPasswordResetEmail($teacher, $resetUrl);
 
