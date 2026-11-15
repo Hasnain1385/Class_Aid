@@ -19,6 +19,11 @@ class UpdateService
     public static ?\Closure $mockHttpClient = null;
 
     /**
+     * Last response headers from httpGet (e.g. rate limit info)
+     */
+    public static array $lastResponseHeaders = [];
+
+    /**
      * Get base directory of project
      */
     public static function getBaseDir(): string
@@ -27,7 +32,7 @@ class UpdateService
     }
 
     /**
-     * Get current version information
+     * Get current version information from version.json and git
      */
     public static function getCurrentVersionInfo(): array
     {
@@ -40,14 +45,22 @@ class UpdateService
             'release_date' => date('Y-m-d'),
             'commit' => 'HEAD',
             'channel' => 'stable',
-            'github_repo' => (string) Config::get('GITHUB_REPO', 'class-aid/class-aid'),
+            'github_repo' => (string) Config::get('GITHUB_REPO', 'Hasnain1385/Class_Aid'),
             'github_branch' => (string) Config::get('GITHUB_BRANCH', 'main'),
         ];
 
         if (file_exists($verFile)) {
             $json = json_decode((string) file_get_contents($verFile), true);
             if (is_array($json)) {
-                return array_merge($defaults, $json);
+                $defaults = array_merge($defaults, $json);
+            }
+        }
+
+        // If commit is 'HEAD' and git is present, attempt to resolve actual git commit
+        if (($defaults['commit'] === 'HEAD' || empty($defaults['commit'])) && is_dir($baseDir . '/.git')) {
+            $gitHead = self::getGitCommitSha();
+            if ($gitHead) {
+                $defaults['commit'] = $gitHead;
             }
         }
 
@@ -55,12 +68,50 @@ class UpdateService
     }
 
     /**
-     * Get configured GitHub repository (e.g. 'owner/repo')
+     * Attempt to resolve short commit SHA from local .git
+     */
+    public static function getGitCommitSha(): ?string
+    {
+        $baseDir = self::getBaseDir();
+        $headFile = $baseDir . '/.git/HEAD';
+        if (!file_exists($headFile)) {
+            return null;
+        }
+
+        $head = trim((string) file_get_contents($headFile));
+        if (str_starts_with($head, 'ref: ')) {
+            $refPath = $baseDir . '/.git/' . trim(substr($head, 5));
+            if (file_exists($refPath)) {
+                return substr(trim((string) file_get_contents($refPath)), 0, 7);
+            }
+            // Check packed-refs if ref file doesn't exist directly
+            $packedRefs = $baseDir . '/.git/packed-refs';
+            if (file_exists($packedRefs)) {
+                $refName = trim(substr($head, 5));
+                $lines = file($packedRefs, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+                foreach ($lines as $line) {
+                    if (str_contains($line, $refName)) {
+                        $parts = explode(' ', trim($line));
+                        if (!empty($parts[0])) {
+                            return substr($parts[0], 0, 7);
+                        }
+                    }
+                }
+            }
+        } elseif (strlen($head) >= 7) {
+            return substr($head, 0, 7);
+        }
+
+        return null;
+    }
+
+    /**
+     * Get configured GitHub repository (e.g. 'Hasnain1385/Class_Aid')
      */
     public static function getRepo(): string
     {
-        $repo = (string) Config::get('GITHUB_REPO', 'class-aid/class-aid');
-        return trim($repo) !== '' ? trim($repo) : 'class-aid/class-aid';
+        $repo = (string) Config::get('GITHUB_REPO', 'Hasnain1385/Class_Aid');
+        return trim($repo) !== '' ? trim($repo) : 'Hasnain1385/Class_Aid';
     }
 
     /**
@@ -82,13 +133,23 @@ class UpdateService
         // Critical user data & configuration that must NEVER be overwritten
         $protectedExact = [
             '.env',
-            'database/database.sqlite',
-            'database/database.sqlite-journal',
-            'database/test.sqlite',
             'storage/maintenance.flag',
         ];
 
         if (in_array($norm, $protectedExact, true)) {
+            return true;
+        }
+
+        // Exclude all .sqlite files and SQLite journal/wal files
+        if (str_ends_with($norm, '.sqlite') ||
+            str_ends_with($norm, '.sqlite-journal') ||
+            str_ends_with($norm, '.sqlite-wal') ||
+            str_ends_with($norm, '.sqlite-shm')) {
+            return true;
+        }
+
+        // Exclude all .env variations
+        if (str_starts_with($norm, '.env.') && !str_ends_with($norm, '.example')) {
             return true;
         }
 
@@ -97,6 +158,7 @@ class UpdateService
             'storage/',
             '.git/',
             'database/backups/',
+            'node_modules/',
         ];
 
         foreach ($protectedPrefixes as $prefix) {
@@ -109,6 +171,54 @@ class UpdateService
     }
 
     /**
+     * Comprehensive Pre-Flight Health & Diagnostic Check
+     */
+    public static function getPreFlightHealth(): array
+    {
+        $baseDir = self::getBaseDir();
+
+        $directories = [
+            'root' => ['path' => '/', 'writable' => is_writable($baseDir)],
+            'src' => ['path' => 'src', 'writable' => is_writable($baseDir . '/src')],
+            'views' => ['path' => 'views', 'writable' => is_writable($baseDir . '/views')],
+            'public' => ['path' => 'public', 'writable' => is_writable($baseDir . '/public')],
+            'storage' => ['path' => 'storage', 'writable' => is_writable($baseDir . '/storage')],
+            'database' => ['path' => 'database', 'writable' => is_writable($baseDir . '/database')],
+        ];
+
+        $allWritable = true;
+        foreach ($directories as $d) {
+            if (!$d['writable']) {
+                $allWritable = false;
+                break;
+            }
+        }
+
+        $phpVersion = PHP_VERSION;
+        $phpOk = version_compare($phpVersion, '8.1.0', '>=');
+        $zipOk = class_exists('ZipArchive');
+        $curlOk = function_exists('curl_init');
+        $opensslOk = extension_loaded('openssl');
+        $isGit = is_dir($baseDir . '/.git');
+
+        $freeBytes = @disk_free_space($baseDir);
+        $diskFormatted = ($freeBytes !== false) ? self::formatBytes((int)$freeBytes) . ' free' : 'Available';
+
+        return [
+            'php_version' => $phpVersion,
+            'php_ok' => $phpOk,
+            'zip_ok' => $zipOk,
+            'curl_ok' => $curlOk,
+            'openssl_ok' => $opensslOk,
+            'directories' => $directories,
+            'all_writable' => $allWritable,
+            'disk_space' => $diskFormatted,
+            'is_git' => $isGit,
+            'all_ok' => ($phpOk && $zipOk && $curlOk && $opensslOk && $allWritable),
+        ];
+    }
+
+    /**
      * Query GitHub API to check for available releases or commits
      */
     public static function checkForUpdates(bool $forceRefresh = false): array
@@ -117,29 +227,36 @@ class UpdateService
         $cacheFile = $baseDir . '/storage/framework/update_cache.json';
         $currentInfo = self::getCurrentVersionInfo();
         $currentVer = ltrim($currentInfo['version'], 'v');
+        $currentCommit = substr((string) ($currentInfo['commit'] ?? 'HEAD'), 0, 7);
         $repo = self::getRepo();
         $branch = self::getBranch();
 
-        // 1. Return cached result if fresh (< 30 minutes) and not forced
+        // 1. Return cached result if fresh (< 15 minutes) and not forced
         if (!$forceRefresh && file_exists($cacheFile)) {
             $cached = json_decode((string) file_get_contents($cacheFile), true);
-            if (is_array($cached) && !empty($cached['cached_at']) && (time() - $cached['cached_at']) < 1800) {
+            if (is_array($cached) && !empty($cached['cached_at']) && (time() - $cached['cached_at']) < 900) {
                 return $cached;
             }
         }
 
-        // 2. Query GitHub Releases
-        $releaseUrl = "https://api.github.com/repos/{$repo}/releases/latest";
-        $apiRes = self::httpGet($releaseUrl);
-
         $hasUpdate = false;
         $latestVer = $currentVer;
+        $latestCommit = $currentCommit;
         $releaseName = 'Latest Release';
         $releaseNotes = '';
         $publishedAt = '';
         $downloadUrl = '';
         $htmlUrl = "https://github.com/{$repo}";
         $updateType = 'release';
+        $commitsBehind = 0;
+        $recentCommits = [];
+        $rateLimitInfo = null;
+        $errorMessage = null;
+
+        // 2. Query GitHub Releases
+        $releaseUrl = "https://api.github.com/repos/{$repo}/releases/latest";
+        $apiRes = self::httpGet($releaseUrl);
+        $rateLimitInfo = self::extractRateLimitHeaders();
 
         if ($apiRes['status'] === 200) {
             $rel = json_decode($apiRes['body'], true);
@@ -158,51 +275,97 @@ class UpdateService
                     $hasUpdate = true;
                 }
             }
-        } elseif ($apiRes['status'] === 404 || $apiRes['status'] === 403) {
-            // No published releases found (or rate limited on releases) -> Check branch commits
+        } elseif ($apiRes['status'] === 404 || $apiRes['status'] === 403 || $apiRes['status'] === 0) {
+            // Check branch commits directly
             $commitsUrl = "https://api.github.com/repos/{$repo}/commits/{$branch}";
             $commitRes = self::httpGet($commitsUrl);
+            $rateLimitInfo = self::extractRateLimitHeaders();
 
             if ($commitRes['status'] === 200) {
                 $c = json_decode($commitRes['body'], true);
                 if (is_array($c) && !empty($c['sha'])) {
                     $latestSha = substr((string) $c['sha'], 0, 7);
-                    $currentSha = substr((string) ($currentInfo['commit'] ?? 'HEAD'), 0, 7);
+                    $latestCommit = $latestSha;
                     $updateType = 'commit';
                     $latestVer = $latestSha;
-                    $releaseName = 'Branch commit: ' . $latestSha;
+                    $releaseName = 'Branch Commit: ' . $latestSha;
                     $releaseNotes = (string) ($c['commit']['message'] ?? 'Direct branch commit update.');
                     $publishedAt = (string) ($c['commit']['committer']['date'] ?? date('Y-m-d H:i:s'));
                     $downloadUrl = "https://github.com/{$repo}/archive/refs/heads/{$branch}.zip";
                     $htmlUrl = "https://github.com/{$repo}/commit/{$c['sha']}";
 
-                    if ($currentSha !== 'HEAD' && $latestSha !== $currentSha) {
-                        $hasUpdate = true;
+                    // Determine if update is available:
+                    // If current commit is not set or differs from latest upstream commit
+                    if ($currentCommit === 'HEAD') {
+                        // Compare latestVer with current version string
+                        $hasUpdate = ($latestSha !== $currentVer);
+                    } else {
+                        $hasUpdate = ($latestSha !== $currentCommit);
+                    }
+
+                    // If an update is available and we have a valid current commit, fetch comparison details
+                    if ($hasUpdate && $currentCommit !== 'HEAD' && $currentCommit !== '') {
+                        $compareUrl = "https://api.github.com/repos/{$repo}/compare/{$currentCommit}...{$latestSha}";
+                        $compareRes = self::httpGet($compareUrl);
+                        if ($compareRes['status'] === 200) {
+                            $cmp = json_decode($compareRes['body'], true);
+                            if (is_array($cmp)) {
+                                $commitsBehind = (int) ($cmp['ahead_by'] ?? 1);
+                                if (!empty($cmp['commits']) && is_array($cmp['commits'])) {
+                                    foreach (array_slice(array_reverse($cmp['commits']), 0, 5) as $cm) {
+                                        $recentCommits[] = [
+                                            'sha' => substr((string) $cm['sha'], 0, 7),
+                                            'message' => explode("\n", (string) ($cm['commit']['message'] ?? ''))[0],
+                                            'author' => (string) ($cm['commit']['author']['name'] ?? 'Dev'),
+                                            'date' => (string) ($cm['commit']['author']['date'] ?? ''),
+                                            'url' => (string) ($cm['html_url'] ?? ''),
+                                        ];
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            } elseif ($commitRes['status'] === 403) {
+                $errorMessage = "GitHub API rate limit exceeded (60 req/hr). Add a Personal Access Token in Updater Settings below.";
+            } elseif ($commitRes['status'] === 0) {
+                $errorMessage = "Unable to connect to api.github.com. Check server internet connectivity.";
+            } else {
+                $errorMessage = "GitHub API error (HTTP {$commitRes['status']}). Verify repository path [{$repo}].";
             }
         }
 
         $result = [
-            'success' => true,
+            'success' => ($errorMessage === null),
             'has_update' => $hasUpdate,
             'current_version' => $currentInfo['version'],
+            'current_commit' => $currentCommit,
             'latest_version' => $latestVer,
+            'latest_commit' => $latestCommit,
             'release_name' => $releaseName,
             'release_notes' => $releaseNotes,
             'published_at' => $publishedAt,
             'download_url' => $downloadUrl,
             'html_url' => $htmlUrl,
             'update_type' => $updateType,
+            'commits_behind' => $commitsBehind,
+            'recent_commits' => $recentCommits,
             'repo' => $repo,
             'branch' => $branch,
             'checked_at' => date('Y-m-d H:i:s'),
             'cached_at' => time(),
-            'api_status' => $apiRes['status'],
+            'rate_limit' => $rateLimitInfo,
+            'error' => $errorMessage,
         ];
 
-        // Cache the successful result
-        @file_put_contents($cacheFile, json_encode($result, JSON_PRETTY_PRINT));
+        // Cache successful checks
+        if ($result['success']) {
+            $dir = dirname($cacheFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+            @file_put_contents($cacheFile, json_encode($result, JSON_PRETTY_PRINT));
+        }
 
         return $result;
     }
@@ -237,7 +400,7 @@ class UpdateService
     /**
      * Create a pre-update backup of current code and SQLite database
      */
-    public static function createBackup(string $note = 'Pre-update backup'): array
+    public static function createBackup(string $note = 'Pre-update safety backup'): array
     {
         $baseDir = self::getBaseDir();
         $backupsDir = $baseDir . '/storage/backups';
@@ -342,10 +505,49 @@ class UpdateService
     }
 
     /**
+     * Delete a backup snapshot
+     */
+    public static function deleteBackup(string $filename): bool
+    {
+        $baseDir = self::getBaseDir();
+        $backupsDir = $baseDir . '/storage/backups';
+        $clean = basename($filename);
+
+        $zipPath = $backupsDir . '/' . $clean;
+        if (file_exists($zipPath)) {
+            @unlink($zipPath);
+        }
+
+        $registryFile = $backupsDir . '/backups.json';
+        if (file_exists($registryFile)) {
+            $registry = json_decode((string) file_get_contents($registryFile), true) ?: [];
+            $filtered = [];
+            foreach ($registry as $rec) {
+                if (($rec['filename'] ?? '') === $clean) {
+                    if (!empty($rec['db_snapshot'])) {
+                        $dbSnap = $backupsDir . '/' . $rec['db_snapshot'];
+                        if (file_exists($dbSnap)) {
+                            @unlink($dbSnap);
+                        }
+                    }
+                    continue;
+                }
+                $filtered[] = $rec;
+            }
+            @file_put_contents($registryFile, json_encode($filtered, JSON_PRETTY_PRINT));
+        }
+
+        return true;
+    }
+
+    /**
      * Execute full in-place update process
      */
     public static function applyUpdate(?string $customZipPath = null): array
     {
+        @set_time_limit(300);
+        @ini_set('memory_limit', '256M');
+
         $baseDir = self::getBaseDir();
         $maintenanceFlag = $baseDir . '/storage/maintenance.flag';
         $logFile = $baseDir . '/storage/logs/updates.log';
@@ -355,73 +557,101 @@ class UpdateService
         $logStep = function (string $msg) use (&$steps, $logFile) {
             $entry = ['time' => date('Y-m-d H:i:s'), 'message' => $msg];
             $steps[] = $entry;
+            $dir = dirname($logFile);
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
             @file_put_contents($logFile, "[{$entry['time']}] {$msg}\n", FILE_APPEND);
         };
 
         try {
-            $logStep("Starting in-place application update...");
+            $logStep("Initiating in-place software update sequence...");
 
-            // Step 1: Check environment & ZIP extension
-            if (!class_exists('ZipArchive')) {
+            // Step 1: Pre-flight health and write permissions check
+            $health = self::getPreFlightHealth();
+            if (!$health['zip_ok']) {
                 throw new RuntimeException("PHP ZipArchive extension is required for in-place updates.");
             }
+            if (!$health['all_writable']) {
+                $unwritable = [];
+                foreach ($health['directories'] as $k => $d) {
+                    if (!$d['writable']) {
+                        $unwritable[] = $d['path'];
+                    }
+                }
+                throw new RuntimeException("Directory permissions error: [" . implode(', ', $unwritable) . "] are not writable. Please check permissions.");
+            }
+            $logStep("Pre-flight system health checks passed.");
 
             // Step 2: Enable maintenance mode
             @touch($maintenanceFlag);
-            $logStep("Maintenance mode enabled.");
+            $logStep("Maintenance mode flag engaged.");
 
             // Step 3: Create pre-update backup
-            $logStep("Creating pre-update backup of files & database...");
+            $logStep("Generating pre-update safety backup snapshot...");
             $backupRecord = self::createBackup("Pre-update safety backup");
-            $logStep("Safety backup created successfully: {$backupRecord['filename']}");
+            $logStep("Safety snapshot created: {$backupRecord['filename']} (" . number_format($backupRecord['size'] / 1024, 1) . " KB)");
 
             // Step 4: Resolve update ZIP
             $zipPath = $customZipPath;
+            $targetVer = null;
+            $targetCommit = null;
+            $releaseName = null;
+
             if (!$zipPath || !file_exists($zipPath)) {
-                $logStep("Checking GitHub for latest release archive...");
+                $logStep("Connecting to upstream GitHub repository [" . self::getRepo() . "]...");
                 $check = self::checkForUpdates(true);
                 if (empty($check['download_url'])) {
-                    throw new RuntimeException("No valid download URL found for GitHub repository [{$check['repo']}].");
+                    throw new RuntimeException("No valid download URL found. GitHub check returned: " . ($check['error'] ?? 'empty download link'));
                 }
-                $logStep("Downloading release archive from [{$check['download_url']}]...");
+                $targetVer = $check['latest_version'];
+                $targetCommit = $check['latest_commit'];
+                $releaseName = $check['release_name'];
+
+                $logStep("Downloading update archive from [{$check['download_url']}]...");
                 $zipPath = self::downloadRelease($check['download_url']);
-                $logStep("Archive downloaded to [{$zipPath}] (" . number_format(filesize($zipPath) / 1024, 1) . " KB).");
+                $logStep("Archive downloaded successfully: " . number_format(filesize($zipPath) / 1024, 1) . " KB.");
             } else {
-                $logStep("Using provided update archive: [{$zipPath}]");
+                $logStep("Using uploaded package archive: [{$zipPath}] (" . number_format(filesize($zipPath) / 1024, 1) . " KB)");
             }
 
-            // Step 5: Extract and overwrite files safely
+            // Step 5: Safe extraction
             $logStep("Extracting update package into application directory...");
             $extractedCount = self::extractZipSafe($zipPath, $baseDir);
-            $logStep("Extracted {$extractedCount} files safely (protected files preserved).");
+            $logStep("Safely extracted and synchronized {$extractedCount} files (.env and databases preserved).");
 
-            // Step 6: Run database migrations
-            $logStep("Running database schema synchronization & migrations...");
+            // Step 6: Database schema and column synchronization
+            $logStep("Running database schema updates and table migrations...");
             $migrationResult = self::runMigrations();
-            $logStep("Database migrations completed: " . ($migrationResult['message'] ?? 'OK'));
+            $logStep("Database synchronization: " . ($migrationResult['message'] ?? 'OK'));
 
-            // Step 7: Update version.json if present in update or bump version
-            $targetVer = !empty($check['latest_version']) ? $check['latest_version'] : null;
+            // Step 7: Update version manifest
             if ($targetVer) {
-                self::setVersion($targetVer, $check['release_name'] ?? ('v' . $targetVer));
-                $logStep("Application version bumped to [{$targetVer}].");
+                self::setVersion($targetVer, $releaseName, $targetCommit);
+                $logStep("Application version manifest updated to [{$targetVer}] (commit {$targetCommit}).");
+            } else {
+                // If custom zip contained version.json, reload it
+                $current = self::getCurrentVersionInfo();
+                $targetVer = $current['version'];
+                $logStep("Application version resolved to [{$targetVer}].");
             }
 
-            // Step 8: Clear caches & invalidate update check
+            // Step 8: Cache flushing & OPcache reset
             @unlink($baseDir . '/storage/framework/update_cache.json');
             if (function_exists('opcache_reset')) {
                 @opcache_reset();
             }
-            $logStep("Application caches & OPcache flushed.");
+            $logStep("Framework update cache and OPcache invalidated.");
 
             // Step 9: Disable maintenance mode
             @unlink($maintenanceFlag);
-            $logStep("Maintenance mode disabled. In-place update completed successfully!");
+            $logStep("Maintenance mode released. In-place update completed 100% cleanly!");
 
             return [
                 'success' => true,
                 'message' => 'Application updated successfully!',
-                'new_version' => $targetVer ?? self::getCurrentVersionInfo()['version'],
+                'new_version' => $targetVer,
+                'new_commit' => $targetCommit,
                 'backup' => $backupRecord['filename'],
                 'steps' => $steps,
             ];
@@ -433,11 +663,11 @@ class UpdateService
             // Attempt automatic rollback if backup exists
             $rolledBack = false;
             if ($backupRecord && !empty($backupRecord['filename'])) {
-                $logStep("Attempting automatic rollback from backup [{$backupRecord['filename']}]...");
+                $logStep("Initiating automatic safe rollback from [{$backupRecord['filename']}]...");
                 try {
                     self::rollback($backupRecord['filename']);
                     $rolledBack = true;
-                    $logStep("Automatic rollback succeeded. Restored previous stable state.");
+                    $logStep("Automatic rollback succeeded. Previous stable application state restored.");
                 } catch (Throwable $rbErr) {
                     $logStep("CRITICAL: Automatic rollback failed: " . $rbErr->getMessage());
                 }
@@ -471,9 +701,8 @@ class UpdateService
             $first = $zip->getNameIndex(0);
             if ($first && str_contains($first, '/')) {
                 $candidate = explode('/', $first)[0];
-                // Check if all files start with this candidate
                 $allMatch = true;
-                for ($i = 0; $i < min(15, $zip->numFiles); $i++) {
+                for ($i = 0; $i < min(20, $zip->numFiles); $i++) {
                     $name = $zip->getNameIndex($i);
                     if ($name && !str_starts_with($name, $candidate . '/')) {
                         $allMatch = false;
@@ -582,7 +811,7 @@ class UpdateService
     }
 
     /**
-     * Run database schema synchronization & incremental migrations
+     * Run database schema synchronization & incremental table/column migrations
      */
     public static function runMigrations(): array
     {
@@ -604,7 +833,6 @@ class UpdateService
             if ($dbDriver === 'mysql') {
                 $pdo->exec($sql);
             } else {
-                // SQLite: split by semicolon and execute
                 $stmts = array_filter(array_map('trim', explode(';', $sql)));
                 foreach ($stmts as $stmt) {
                     if ($stmt !== '' && !str_starts_with($stmt, '--')) {
@@ -619,14 +847,14 @@ class UpdateService
 
             return ['success' => true, 'message' => 'Schema tables synchronized successfully.'];
         } catch (Throwable $e) {
-            return ['success' => false, 'message' => 'Migration warning: ' . $e->getMessage()];
+            return ['success' => false, 'message' => 'Migration notice: ' . $e->getMessage()];
         }
     }
 
     /**
-     * Update version in version.json
+     * Update version manifest in version.json
      */
-    public static function setVersion(string $version, ?string $releaseName = null): void
+    public static function setVersion(string $version, ?string $releaseName = null, ?string $commitSha = null): void
     {
         $baseDir = self::getBaseDir();
         $verFile = $baseDir . '/version.json';
@@ -636,9 +864,14 @@ class UpdateService
         if ($releaseName) {
             $current['release_name'] = $releaseName;
         }
+        if ($commitSha) {
+            $current['commit'] = $commitSha;
+        }
         $current['release_date'] = date('Y-m-d');
+        $current['github_repo'] = self::getRepo();
+        $current['github_branch'] = self::getBranch();
 
-        @file_put_contents($verFile, json_encode($current, JSON_PRETTY_PRINT));
+        @file_put_contents($verFile, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
         Config::set('APP_VERSION', $current['version']);
     }
 
@@ -662,6 +895,8 @@ class UpdateService
             $headers[] = 'Authorization: Bearer ' . trim($token);
         }
 
+        self::$lastResponseHeaders = [];
+
         // 2. Use cURL if available
         if (function_exists('curl_init')) {
             $ch = curl_init($url);
@@ -670,6 +905,7 @@ class UpdateService
             curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_HEADER, true);
 
             $curlHeaders = [];
             foreach ($headers as $k => $v) {
@@ -677,16 +913,29 @@ class UpdateService
             }
             curl_setopt($ch, CURLOPT_HTTPHEADER, $curlHeaders);
 
-            $body = curl_exec($ch);
+            $response = curl_exec($ch);
             $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             $err = curl_error($ch);
             curl_close($ch);
 
-            if ($body === false) {
-                return ['status' => 0, 'body' => '', 'error' => $err];
+            if ($response === false) {
+                return ['status' => 0, 'body' => '', 'error' => $err, 'headers' => []];
             }
 
-            return ['status' => $status, 'body' => (string) $body];
+            $rawHeaders = substr((string)$response, 0, $headerSize);
+            $body = substr((string)$response, $headerSize);
+
+            $parsedHeaders = [];
+            foreach (explode("\r\n", $rawHeaders) as $h) {
+                if (str_contains($h, ':')) {
+                    [$hk, $hv] = explode(':', $h, 2);
+                    $parsedHeaders[strtolower(trim($hk))] = trim($hv);
+                }
+            }
+            self::$lastResponseHeaders = $parsedHeaders;
+
+            return ['status' => $status, 'body' => (string) $body, 'headers' => $parsedHeaders];
         }
 
         // 3. Fallback to file_get_contents with stream context
@@ -709,12 +958,46 @@ class UpdateService
 
         $body = @file_get_contents($url, false, $ctx);
         $status = 0;
+        $parsedHeaders = [];
         if (isset($http_response_header) && is_array($http_response_header)) {
             if (preg_match('|HTTP/\d\.\d\s+(\d+)|', $http_response_header[0], $m)) {
                 $status = (int) $m[1];
             }
+            foreach ($http_response_header as $h) {
+                if (str_contains($h, ':')) {
+                    [$hk, $hv] = explode(':', $h, 2);
+                    $parsedHeaders[strtolower(trim($hk))] = trim($hv);
+                }
+            }
         }
+        self::$lastResponseHeaders = $parsedHeaders;
 
-        return ['status' => $status, 'body' => (string) $body];
+        return ['status' => $status, 'body' => (string) $body, 'headers' => $parsedHeaders];
+    }
+
+    /**
+     * Extract rate limit information from last response
+     */
+    public static function extractRateLimitHeaders(): array
+    {
+        $h = self::$lastResponseHeaders;
+        return [
+            'limit' => isset($h['x-ratelimit-limit']) ? (int) $h['x-ratelimit-limit'] : null,
+            'remaining' => isset($h['x-ratelimit-remaining']) ? (int) $h['x-ratelimit-remaining'] : null,
+            'reset_time' => isset($h['x-ratelimit-reset']) ? date('H:i:s', (int) $h['x-ratelimit-reset']) : null,
+        ];
+    }
+
+    /**
+     * Helper to format bytes into readable units
+     */
+    public static function formatBytes(int $bytes, int $precision = 1): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+        return round($bytes, $precision) . ' ' . $units[$pow];
     }
 }

@@ -22,6 +22,7 @@ class UpdateController
         $force = ($request->query('check') === '1');
         $updateStatus = UpdateService::checkForUpdates($force);
         $backups = UpdateService::getBackups();
+        $health = UpdateService::getPreFlightHealth();
 
         // Read recent update logs
         $baseDir = UpdateService::getBaseDir();
@@ -29,13 +30,14 @@ class UpdateController
         $logLines = [];
         if (file_exists($logFile)) {
             $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
-            $logLines = array_slice(array_reverse($lines), 0, 30);
+            $logLines = array_slice(array_reverse($lines), 0, 40);
         }
 
         View::render('admin.updates.index', [
             'title' => 'System Updates & In-Place Engine',
             'current' => $currentInfo,
             'update' => $updateStatus,
+            'health' => $health,
             'backups' => $backups,
             'logLines' => $logLines,
             'repo' => UpdateService::getRepo(),
@@ -59,9 +61,13 @@ class UpdateController
             }
 
             if (!empty($updateStatus['has_update'])) {
-                Session::flash('success', "Update available: {$updateStatus['latest_version']} is ready to install!");
+                $behind = $updateStatus['commits_behind'] ?? 0;
+                $behindText = $behind > 0 ? " ({$behind} commits behind)" : "";
+                Session::flash('success', "Update available: {$updateStatus['latest_version']}{$behindText} is ready to deploy!");
+            } elseif (!empty($updateStatus['error'])) {
+                Session::flash('error', $updateStatus['error']);
             } else {
-                Session::flash('success', "Class Aid is up to date! (Current version: {$updateStatus['current_version']})");
+                Session::flash('success', "Class Aid is fully up to date! (Current: {$updateStatus['current_version']})");
             }
         } catch (Throwable $e) {
             if ($request->isJson() || $request->isAjax()) {
@@ -107,6 +113,23 @@ class UpdateController
         }
 
         header('Location: /admin/updates');
+        exit;
+    }
+
+    /**
+     * Return live update log entries via JSON
+     */
+    public function streamLogs(Request $request): void
+    {
+        header('Content-Type: application/json');
+        $baseDir = UpdateService::getBaseDir();
+        $logFile = $baseDir . '/storage/logs/updates.log';
+        $lines = [];
+        if (file_exists($logFile)) {
+            $raw = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+            $lines = array_slice($raw, -35);
+        }
+        echo json_encode(['success' => true, 'lines' => $lines]);
         exit;
     }
 
@@ -199,6 +222,29 @@ class UpdateController
     }
 
     /**
+     * Delete a selected backup snapshot
+     */
+    public function deleteBackup(Request $request): void
+    {
+        $filename = (string) $request->input('filename', '');
+        if ($filename === '') {
+            Session::flash('error', 'No backup file specified.');
+            header('Location: /admin/updates');
+            exit;
+        }
+
+        try {
+            UpdateService::deleteBackup($filename);
+            Session::flash('success', "Snapshot archive {$filename} deleted successfully.");
+        } catch (Throwable $e) {
+            Session::flash('error', "Failed to delete backup: " . $e->getMessage());
+        }
+
+        header('Location: /admin/updates');
+        exit;
+    }
+
+    /**
      * Download backup zip
      */
     public function downloadBackup(Request $request, string $filename): void
@@ -225,12 +271,12 @@ class UpdateController
      */
     public function saveSettings(Request $request): void
     {
-        $repo = trim((string) $request->input('github_repo', 'class-aid/class-aid'));
+        $repo = trim((string) $request->input('github_repo', 'Hasnain1385/Class_Aid'));
         $branch = trim((string) $request->input('github_branch', 'main'));
         $token = trim((string) $request->input('github_token', ''));
 
         if ($repo === '') {
-            $repo = 'class-aid/class-aid';
+            $repo = 'Hasnain1385/Class_Aid';
         }
         if ($branch === '') {
             $branch = 'main';
@@ -241,13 +287,22 @@ class UpdateController
             'GITHUB_BRANCH' => $branch,
         ];
 
-        // Only update token if provided (or if user cleared it)
+        // Only update token if provided (or if user checked to update)
         if ($request->input('update_token') === '1') {
             $envData['GITHUB_TOKEN'] = $token;
         }
 
         Config::writeEnv($envData);
         @unlink(UpdateService::getBaseDir() . '/storage/framework/update_cache.json');
+
+        // Also sync version.json with newly saved repository target
+        $verInfo = UpdateService::getCurrentVersionInfo();
+        $verInfo['github_repo'] = $repo;
+        $verInfo['github_branch'] = $branch;
+        @file_put_contents(
+            UpdateService::getBaseDir() . '/version.json',
+            json_encode($verInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
 
         Session::flash('success', 'GitHub repository updater settings updated successfully!');
         header('Location: /admin/updates');

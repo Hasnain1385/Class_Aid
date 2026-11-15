@@ -143,9 +143,11 @@ $router->post('/admin/reminders/broadcast', [AdminController::class, 'broadcastR
 $router->get('/admin/updates', [UpdateController::class, 'index'], ['super_admin']);
 $router->post('/admin/updates/check', [UpdateController::class, 'check'], ['super_admin']);
 $router->post('/admin/updates/apply', [UpdateController::class, 'apply'], ['super_admin']);
+$router->get('/admin/updates/logs', [UpdateController::class, 'streamLogs'], ['super_admin']);
 $router->post('/admin/updates/upload', [UpdateController::class, 'upload'], ['super_admin']);
 $router->post('/admin/updates/backup', [UpdateController::class, 'createBackup'], ['super_admin']);
 $router->post('/admin/updates/restore', [UpdateController::class, 'restoreBackup'], ['super_admin']);
+$router->post('/admin/updates/backup/delete', [UpdateController::class, 'deleteBackup'], ['super_admin']);
 $router->get('/admin/updates/backup/download/{filename}', [UpdateController::class, 'downloadBackup'], ['super_admin']);
 $router->post('/admin/updates/settings', [UpdateController::class, 'saveSettings'], ['super_admin']);
 

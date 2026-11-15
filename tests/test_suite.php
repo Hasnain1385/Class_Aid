@@ -823,6 +823,10 @@ it('Auto-generates renewal invoices 7 days before expiry and suspends past grace
 // -------------------------------------------------------------
 echo "\n\033[1m[11. In-Place Update Module & GitHub Release Engine]\033[0m\n";
 
+$realOriginalVersionJson = file_exists(UpdateService::getBaseDir() . '/version.json')
+    ? (string) file_get_contents(UpdateService::getBaseDir() . '/version.json')
+    : null;
+
 it('Protected paths filter strictly safeguards .env, database, and uploads', function () {
     if (!UpdateService::isProtectedPath('.env')) {
         throw new \Exception(".env must be marked as protected");
@@ -907,7 +911,7 @@ it('Generates safety backup archive and registers snapshot metadata', function (
     }
 });
 
-it('Performs in-place zip extraction, preserving protected files and updating version', function () {
+it('Performs in-place zip extraction, preserving protected files and updating version', function () use ($realOriginalVersionJson) {
     $baseDir = UpdateService::getBaseDir();
     $tempZipPath = $baseDir . '/storage/updates/test_package_' . time() . '.zip';
 
@@ -964,8 +968,16 @@ it('Performs in-place zip extraction, preserving protected files and updating ve
     @unlink($tempZipPath);
 
     // Restore original version.json exactly as it was
-    file_put_contents($baseDir . '/version.json', $originalVersionContent);
-    Config::set('APP_VERSION', '1.0.0');
+    if ($realOriginalVersionJson !== null) {
+        file_put_contents($baseDir . '/version.json', $realOriginalVersionJson);
+        $origArr = json_decode($realOriginalVersionJson, true);
+        if (!empty($origArr['version'])) {
+            Config::set('APP_VERSION', (string)$origArr['version']);
+        }
+    } else {
+        file_put_contents($baseDir . '/version.json', $originalVersionContent);
+        Config::set('APP_VERSION', '1.0.0');
+    }
 });
 
 // -------------------------------------------------------------

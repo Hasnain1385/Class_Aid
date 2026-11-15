@@ -24,17 +24,43 @@ echo "  • Installed Version : \033[1;36mv{$info['version']}\033[0m\n";
 echo "  • Target Repository : \033[1;33m{$info['github_repo']}\033[0m\n";
 echo "  • Target Branch     : \033[1;33m{$info['github_branch']}\033[0m\n\n";
 
+if ($action === '--health' || $action === 'health') {
+    echo "Running Pre-Flight System Health & Environment Check...\n";
+    $health = UpdateService::getPreFlightHealth();
+    echo "  • PHP Runtime      : \033[1;32m{$health['php_version']}\033[0m (" . ($health['php_ok'] ? 'OK' : 'Requires >= 8.1') . ")\n";
+    echo "  • ZipArchive Ext   : " . ($health['zip_ok'] ? "\033[1;32mInstalled\033[0m" : "\033[1;31mMissing\033[0m") . "\n";
+    echo "  • cURL / SSL       : " . (($health['curl_ok'] && $health['openssl_ok']) ? "\033[1;32mOperational\033[0m" : "\033[1;31mDisabled\033[0m") . "\n";
+    echo "  • Free Disk Space  : \033[1;36m{$health['disk_space']}\033[0m\n";
+    echo "  • Writable Status  : " . ($health['all_writable'] ? "\033[1;32mAll Paths Writable\033[0m" : "\033[1;31mPermission Errors\033[0m") . "\n";
+    foreach ($health['directories'] as $k => $d) {
+        $status = $d['writable'] ? "\033[1;32mWritable\033[0m" : "\033[1;31mLOCKED\033[0m";
+        echo "      - [{$d['path']}] : {$status}\n";
+    }
+    echo "\n";
+    exit(0);
+}
+
 if ($action === '--check' || $action === '-c' || $action === 'check') {
     echo "Checking GitHub for updates...\n";
     $res = UpdateService::checkForUpdates(true);
 
     if (!empty($res['has_update'])) {
-        echo "  \033[1;32m[UPDATE AVAILABLE]\033[0m Latest version: \033[1;32mv{$res['latest_version']}\033[0m\n";
+        $behind = $res['commits_behind'] ?? 0;
+        $behindText = $behind > 0 ? " ({$behind} commits behind)" : "";
+        echo "  \033[1;32m[UPDATE AVAILABLE]\033[0m Latest: \033[1;32m{$res['latest_version']}\033[0m{$behindText}\n";
         echo "  • Title: {$res['release_name']}\n";
         echo "  • Published: {$res['published_at']}\n";
-        echo "  • Run '\033[1;37mphp update.php --apply\033[0m' to perform in-place update.\n\n";
+        if (!empty($res['recent_commits'])) {
+            echo "  • Recent commits:\n";
+            foreach ($res['recent_commits'] as $rc) {
+                echo "      [{$rc['sha']}] {$rc['message']} ({$rc['author']})\n";
+            }
+        }
+        echo "  • Run '\033[1;37mphp bin/update --apply\033[0m' to perform in-place update.\n\n";
+    } elseif (!empty($res['error'])) {
+        echo "  \033[1;33m[NOTICE]\033[0m {$res['error']}\n\n";
     } else {
-        echo "  \033[1;32m[OK]\033[0m Your Class Aid installation is up to date! (v{$info['version']})\n\n";
+        echo "  \033[1;32m[OK]\033[0m Your Class Aid installation is up to date! ({$info['commit']})\n\n";
     }
     exit(0);
 }
@@ -58,7 +84,7 @@ if ($action === '--apply' || $action === '-a' || $action === 'apply') {
     }
 
     if (!empty($res['success'])) {
-        echo "\n\033[1;32m[OK] Updated to v{$res['new_version']} cleanly.\033[0m\n";
+        echo "\n\033[1;32m[OK] Updated to {$res['new_version']} cleanly.\033[0m\n";
         echo "  • Safety snapshot: {$res['backup']}\n\n";
         exit(0);
     } else {
@@ -72,6 +98,7 @@ if ($action === '--apply' || $action === '-a' || $action === 'apply') {
 }
 
 echo "Usage:\n";
-echo "  php update.php --check    Check GitHub for newer releases\n";
-echo "  php update.php --apply    Perform automated in-place update\n";
-echo "  php update.php --backup   Create a manual code & database backup\n\n";
+echo "  php bin/update --check    Check GitHub for newer releases or commits\n";
+echo "  php bin/update --apply    Perform automated in-place update\n";
+echo "  php bin/update --backup   Create a manual code & database backup\n";
+echo "  php bin/update --health   Run pre-flight system health checks\n\n";
