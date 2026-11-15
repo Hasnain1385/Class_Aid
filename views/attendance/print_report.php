@@ -106,14 +106,6 @@
             <?php endif; ?>
         </tbody>
     </table>
-                                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-700">SATISFACTORY</span>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </tbody>
-    </table>
 
     <!-- Signature & Institutional Verification Box -->
     <div class="mt-12 pt-8 border-t border-slate-300 grid grid-cols-2 gap-12 text-xs avoid-break">
