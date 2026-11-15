@@ -9,11 +9,13 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 8mm 8mm 12mm 8mm;
+            margin: 8mm 8mm 10mm 8mm;
         }
         @media print {
             html, body {
                 width: 210mm !important;
+                height: 100% !important;
+                min-height: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #ffffff !important;
@@ -33,14 +35,28 @@
                 margin: 0 !important;
                 max-width: 100% !important;
                 width: 100% !important;
+                min-height: 275mm !important; /* Full A4 page height (297mm) minus margins */
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+            }
+            .print-body-content {
+                flex: 1 0 auto !important;
+                width: 100% !important;
+            }
+            .print-institutional-footer {
+                margin-top: auto !important;
+                flex-shrink: 0 !important;
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                padding-top: 3mm !important;
+                border-top: 1px solid #cbd5e1 !important;
             }
             tr, .avoid-break {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
-            }
-            .print-institutional-footer {
-                margin-top: 10mm !important;
-                page-break-inside: avoid !important;
             }
             table.compact-table th, table.compact-table td {
                 padding: 1.2mm 1.8mm !important;
@@ -55,6 +71,7 @@
             body {
                 background: #f1f5f9;
                 font-size: 11pt;
+                min-height: 100vh;
             }
             .print-container {
                 max-width: 210mm;
@@ -62,6 +79,22 @@
                 margin-left: auto;
                 margin-right: auto;
                 background: #ffffff;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                box-sizing: border-box !important;
+                padding: 10mm !important;
+            }
+            .print-body-content {
+                flex: 1 0 auto !important;
+                width: 100% !important;
+            }
+            .print-institutional-footer {
+                margin-top: auto !important;
+                flex-shrink: 0 !important;
+                width: 100% !important;
+                padding-top: 0.75rem !important;
+                border-top: 1px solid #cbd5e1 !important;
             }
             table.compact-table th, table.compact-table td {
                 padding: 0.28rem 0.45rem !important;
@@ -96,21 +129,14 @@
 
     <!-- Printable A4 Portrait Sheet -->
     <div class="print-container p-8 sm:p-10 rounded-2xl shadow-xl border border-slate-200">
-        <?= $content ?>
+        <div class="print-body-content">
+            <?= $content ?>
+        </div>
 
-        <!-- Standardized Institutional App Footer -->
-        <div class="print-institutional-footer mt-10 pt-4 border-t-2 border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-slate-500 text-[10pt]">
-            <div class="flex items-center gap-2">
-                <div class="w-5 h-5 rounded-md bg-indigo-600 text-white flex items-center justify-center font-black text-[10px]">CA</div>
-                <span class="font-bold text-slate-800">Class Aid</span>
-                <span>—</span>
-                <span class="text-slate-600">Institutional Record-Keeping &amp; Classroom Intelligence Suite</span>
-            </div>
-            <div class="text-[9.5pt] text-slate-500 flex items-center gap-2">
-                <span class="font-medium">Verified Institutional Record</span>
-                <span>•</span>
-                <span class="font-mono tabular-nums">Printed: <?= date('Y-m-d H:i') ?></span>
-            </div>
+        <!-- Simplified Print Footer (Just Class Aid & Print Date, pinned to bottom) -->
+        <div class="print-institutional-footer flex items-center justify-between text-slate-600 text-[9.5pt]">
+            <span class="font-bold text-slate-900 tracking-tight">Class Aid</span>
+            <span class="font-mono text-[9pt] tabular-nums text-slate-500">Printed: <?= date('Y-m-d H:i') ?></span>
         </div>
     </div>
 

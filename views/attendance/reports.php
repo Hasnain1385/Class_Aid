@@ -364,6 +364,84 @@
             </div>
         </div>
 
+        <?php if ($scope === 'single' && count($report['students']) === 1): ?>
+            <?php
+                $singleStu = $report['students'][0];
+                $screenDates = [];
+                $sCur = new DateTime($dateFrom);
+                $sEnd = new DateTime($dateTo);
+                if ($sCur > $sEnd) { $tmp = $sCur; $sCur = $sEnd; $sEnd = $tmp; }
+                $sPeriod = new DatePeriod($sCur, new DateInterval('P1D'), (clone $sEnd)->modify('+1 day'));
+                foreach ($sPeriod as $sDt) { $screenDates[] = $sDt->format('Y-m-d'); }
+            ?>
+            <div class="glass-card overflow-hidden">
+                <div class="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="calendar" class="w-4 h-4 text-indigo-500"></i>
+                            <span>Day-by-Day Attendance History (All Dates in Range)</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Detailed record for <?= $e($singleStu['first_name'] . ' ' . $singleStu['last_name']) ?> across <?= count($screenDates) ?> days (<?= date('M d, Y', strtotime($dateFrom)) ?> &mdash; <?= date('M d, Y', strtotime($dateTo)) ?>)
+                        </p>
+                    </div>
+                </div>
+                <div class="overflow-x-auto max-h-96">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50/70 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider text-[11px] sticky top-0 z-10 backdrop-blur-sm">
+                            <tr>
+                                <th class="py-2.5 px-3 w-10 text-center">#</th>
+                                <th class="py-2.5 px-3 w-32">Date</th>
+                                <th class="py-2.5 px-3 w-28">Day</th>
+                                <th class="py-2.5 px-3 text-center w-36">Status</th>
+                                <th class="py-2.5 px-4">Audit Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                            <?php $dNum = 1; foreach ($screenDates as $sd): ?>
+                                <?php
+                                    $sTs = strtotime($sd);
+                                    $sDay = date('l', $sTs);
+                                    $sWk = (date('N', $sTs) >= 6);
+                                    $sRec = $singleStu['date_map'][$sd] ?? null;
+                                ?>
+                                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
+                                    <td class="py-2 px-3 text-center font-mono text-[11px] text-slate-400"><?= $dNum++ ?></td>
+                                    <td class="py-2 px-3 font-mono font-bold text-slate-900 dark:text-white tabular-nums"><?= date('M d, Y', $sTs) ?></td>
+                                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400"><?= $sDay ?></td>
+                                    <td class="py-2 px-3 text-center">
+                                        <?php if ($sRec): ?>
+                                            <?php $sc = strtoupper((string) ($sRec['status'] ?? '')); ?>
+                                            <?php if ($sc === 'P'): ?>
+                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full badge-emerald">✔ Present (P)</span>
+                                            <?php elseif ($sc === 'A'): ?>
+                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full badge-rose">✖ Absent (A)</span>
+                                            <?php elseif ($sc === 'L'): ?>
+                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full badge-amber">⏰ Late (L)</span>
+                                            <?php elseif ($sc === 'E'): ?>
+                                                <span class="px-2 py-0.5 text-[10px] font-bold rounded-full badge-blue">ℹ Excused (E)</span>
+                                            <?php else: ?>
+                                                <span class="px-2 py-0.5 text-[10px] rounded-full bg-slate-100 text-slate-700"><?= $e($sc) ?></span>
+                                            <?php endif; ?>
+                                        <?php elseif ($sWk): ?>
+                                            <span class="text-[11px] text-slate-400">Weekend</span>
+                                        <?php elseif (in_array($sd, $report['dates'])): ?>
+                                            <span class="px-2 py-0.5 text-[10px] rounded-full bg-amber-500/10 text-amber-600 font-semibold">Unrecorded</span>
+                                        <?php else: ?>
+                                            <span class="text-[11px] text-slate-400">No Session</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="py-2 px-4 text-slate-500 dark:text-slate-400 text-[11px]">
+                                        <?= ($sRec && !empty($sRec['remarks'])) ? $e($sRec['remarks']) : (($sRec) ? 'Roll call logged' : ($sWk ? 'Weekend' : 'No class scheduled')) ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        <?php endif; ?>
+
     <?php endif; ?>
 
 </div>

@@ -771,6 +771,41 @@ it('Attendance getCustomReport generates scoped analytics for whole class, singl
     if (count($multiReport['students']) !== 2) {
         throw new \Exception("Multi-selection should include both students");
     }
+
+    // 4. Verify Single Student Day-by-Day View Compilation
+    ob_start();
+    $scope = 'single';
+    $class = SchoolClass::findById($testHomeClassId);
+    $dateFrom = $from;
+    $dateTo = $to;
+    $report = $singleReport;
+    $teacher = User::findById((int)($class['teacher_id'] ?? 1));
+    $e = function ($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); };
+    require __DIR__ . '/../views/attendance/print_report.php';
+    $renderedHtml = ob_get_clean();
+
+    if (!str_contains($renderedHtml, 'Student Attendance Audit Dossier')) {
+        throw new \Exception("Expected single student dossier heading in print view");
+    }
+    if (!str_contains($renderedHtml, 'Day-by-Day Attendance Table')) {
+        throw new \Exception("Expected day-by-day table in single student report");
+    }
+    if (!str_contains($renderedHtml, date('M d, Y', strtotime($from)))) {
+        throw new \Exception("Expected all dates including start date to be explicitly listed");
+    }
+
+    // 5. Verify Simplified Print Layout Footer (Class Aid & Print Date with Bottom Pinning)
+    $content = $renderedHtml;
+    ob_start();
+    require __DIR__ . '/../views/layouts/print.php';
+    $layoutHtml = ob_get_clean();
+
+    if (!str_contains($layoutHtml, 'Class Aid</span>') || !str_contains($layoutHtml, 'Printed:')) {
+        throw new \Exception("Print layout must contain simplified footer with Class Aid and Printed date");
+    }
+    if (!str_contains($layoutHtml, 'min-height: 275mm') || !str_contains($layoutHtml, 'margin-top: auto')) {
+        throw new \Exception("Print layout must enforce bottom pinning via min-height and margin-top: auto");
+    }
 });
 
 it('Auto plan extension extends active plans from existing expiry date and reactivates suspended users', function () {
