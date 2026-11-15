@@ -139,6 +139,42 @@ class ResultController
         ], 'print');
     }
 
+    public function printExam(Request $request, string $examId): void
+    {
+        $eId = (int) $examId;
+        $exam = Exam::findById($eId);
+        if (!$exam || ((int)($exam['teacher_id'] ?? 0) !== (int)Session::userId() && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Exam not found or access denied.');
+            Response::redirect('/results');
+            return;
+        }
+
+        $students = Student::getByClass((int) $exam['class_id']);
+        $existingMarks = Mark::getByExam($eId);
+
+        $marksMap = [];
+        foreach ($existingMarks as $m) {
+            $marksMap[$m['student_id']] = $m;
+        }
+
+        foreach ($students as &$stu) {
+            $stuId = (int) $stu['id'];
+            $stu['marks_data'] = $marksMap[$stuId] ?? null;
+        }
+        unset($stu);
+
+        $analytics = Mark::getExamAnalytics($eId);
+        $teacher = Session::user();
+
+        View::render('results.print_exam', [
+            'title' => 'Exam Result Sheet - ' . $exam['title'] . ' (' . $exam['subject_name'] . ')',
+            'exam' => $exam,
+            'students' => $students,
+            'analytics' => $analytics,
+            'teacher' => $teacher,
+        ], 'print');
+    }
+
     public function bulkImport(Request $request): void
     {
         $teacherId = Session::userId();

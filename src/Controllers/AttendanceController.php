@@ -91,4 +91,48 @@ class AttendanceController
         Session::flash('success', "Attendance for {$date} saved successfully.");
         Response::redirect("/attendance/sheet/{$cId}?date={$date}");
     }
+
+    public function printSheet(Request $request, string $classId): void
+    {
+        $cId = (int) $classId;
+        $class = SchoolClass::findById($cId);
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== (int)Session::userId() && !Session::isSuperAdmin())) {
+            Session::flash('error', 'Class not found or access denied.');
+            Response::redirect('/attendance');
+            return;
+        }
+
+        $date = $request->query('date', date('Y-m-d'));
+        $students = Student::getByClass($cId);
+        $existing = Attendance::getByClassAndDate($cId, $date);
+
+        $attendanceMap = [];
+        $summary = ['present' => 0, 'absent' => 0, 'late' => 0, 'excused' => 0];
+        foreach ($existing as $row) {
+            $attendanceMap[$row['student_id']] = $row;
+            $st = strtoupper((string)$row['status']);
+            if ($st === 'P') $summary['present']++;
+            elseif ($st === 'A') $summary['absent']++;
+            elseif ($st === 'L') $summary['late']++;
+            elseif ($st === 'E') $summary['excused']++;
+        }
+
+        foreach ($students as &$stu) {
+            $stuId = (int) $stu['id'];
+            $stu['current_status'] = $attendanceMap[$stuId]['status'] ?? 'P';
+            $stu['current_remarks'] = $attendanceMap[$stuId]['remarks'] ?? '';
+        }
+        unset($stu);
+
+        $teacher = Session::user();
+
+        View::render('attendance.print_sheet', [
+            'title' => 'Attendance Sheet - ' . $class['name'] . ' ' . $class['section'] . ' (' . $date . ')',
+            'class' => $class,
+            'date' => $date,
+            'students' => $students,
+            'summary' => $summary,
+            'teacher' => $teacher,
+        ], 'print');
+    }
 }

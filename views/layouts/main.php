@@ -89,18 +89,24 @@
                 </a>
             </div>
 
-            <!-- Global Live Student Search Bar -->
-            <div class="flex-1 max-w-md relative search-wrapper min-w-0">
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
-                        <i data-lucide="search" class="w-4 h-4"></i>
-                    </div>
-                    <input type="text" 
-                           class="global-student-search w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-xl glass-input placeholder-slate-400 dark:placeholder-slate-500" 
-                           placeholder="Search student by name, ID (e.g. ADM-1001)...">
-                </div>
-                <!-- Instant Live Results Dropdown -->
-                <div class="search-results-dropdown hidden absolute left-0 right-0 mt-2 glass-card p-1 shadow-2xl max-h-80 overflow-y-auto z-50"></div>
+            <!-- Global Live Student Search Trigger -->
+            <div class="flex items-center">
+                <!-- Mobile Search Icon Button -->
+                <button type="button" 
+                        onclick="openGlobalSearch()" 
+                        class="sm:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer" 
+                        title="Search Students (Ctrl+K)">
+                    <i data-lucide="search" class="w-5 h-5"></i>
+                </button>
+
+                <!-- Desktop Search Trigger Bar -->
+                <button type="button" 
+                        onclick="openGlobalSearch()" 
+                        class="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl glass-input text-slate-400 dark:text-slate-500 hover:border-indigo-500 hover:text-slate-600 dark:hover:text-slate-300 transition-all text-xs w-60 md:w-72 cursor-pointer text-left">
+                    <i data-lucide="search" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
+                    <span class="flex-1 truncate">Search students (name, ID)...</span>
+                    <kbd class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500">⌘K</kbd>
+                </button>
             </div>
 
             <!-- Right Controls: Theme Toggle & User Menu -->
@@ -623,12 +629,63 @@
             if (e.key === 'Escape') {
                 document.getElementById('notifications-flyout')?.classList.add('hidden');
                 closeGlobalAnnouncementModal();
+                closeGlobalSearch();
+            }
+            // Global Ctrl+K / Cmd+K shortcut
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openGlobalSearch();
             }
         });
+
+        function openGlobalSearch() {
+            const modal = document.getElementById('global-search-modal');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            const input = document.getElementById('global-modal-search-input');
+            if (input) {
+                setTimeout(() => input.focus(), 50);
+            }
+        }
+
+        function closeGlobalSearch() {
+            const modal = document.getElementById('global-search-modal');
+            if (modal) modal.classList.add('hidden');
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             refreshNotificationBadges();
         });
     </script>
+
+    <!-- Global Search Modal Popup (Mobile-Optimized & Responsive) -->
+    <div id="global-search-modal" 
+         class="hidden fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4 bg-black/60 backdrop-blur-md"
+         onclick="if(event.target === this) closeGlobalSearch()">
+        <div class="relative w-full max-w-xl glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden search-wrapper">
+            <!-- Search Header -->
+            <div class="flex items-center px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 gap-3">
+                <i data-lucide="search" class="w-5 h-5 text-indigo-500 flex-shrink-0"></i>
+                <input type="text" 
+                       id="global-modal-search-input"
+                       class="global-student-search flex-1 bg-transparent border-0 outline-none text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 p-0"
+                       placeholder="Search student by name, phone, or Admin ID..."
+                       autocomplete="off">
+                <kbd class="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono text-slate-400 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">ESC</kbd>
+                <button type="button" onclick="closeGlobalSearch()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Search Results Container inside Modal -->
+            <div class="search-results-dropdown max-h-[60vh] overflow-y-auto p-2">
+                <div id="search-modal-prompt" class="p-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                    <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 opacity-30 text-indigo-500"></i>
+                    <p class="font-medium text-slate-600 dark:text-slate-400">Search Students Directory</p>
+                    <p class="text-[11px] mt-1 text-slate-400">Type a student's first name, last name, phone number, or Admin ID (e.g. ADM-1001).</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

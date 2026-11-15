@@ -29,6 +29,10 @@
             <span class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 shadow-sm">
                 Class Average: <strong class="font-mono text-slate-900 dark:text-white tabular-nums"><?= $analytics['avg_score'] ?? 0 ?></strong>
             </span>
+            <a href="/results/print/exam/<?= $exam['id'] ?>" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all">
+                <i data-lucide="printer" class="w-4 h-4 text-violet-500"></i>
+                <span>Print Result Table</span>
+            </a>
             <a href="/results/import?exam_id=<?= $exam['id'] ?>" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-sm transition-all">
                 <i data-lucide="scan-line" class="w-4 h-4"></i>
                 <span>Bulk Import / Scan</span>

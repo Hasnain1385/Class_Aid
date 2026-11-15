@@ -263,8 +263,18 @@ function initSearch() {
             const query = e.target.value.trim();
 
             if (query.length < 1) {
-                resultsContainer.classList.add('hidden');
-                resultsContainer.innerHTML = '';
+                if (input.closest('#global-search-modal')) {
+                    resultsContainer.innerHTML = `
+                        <div id="search-modal-prompt" class="p-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                            <i data-lucide="search" class="w-8 h-8 mx-auto mb-2 opacity-30 text-indigo-500"></i>
+                            <p class="font-medium text-slate-600 dark:text-slate-400">Search Students Directory</p>
+                            <p class="text-[11px] mt-1 text-slate-400">Type a student's first name, last name, phone number, or Admin ID (e.g. ADM-1001).</p>
+                        </div>`;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                } else {
+                    resultsContainer.classList.add('hidden');
+                    resultsContainer.innerHTML = '';
+                }
                 return;
             }
 
@@ -306,6 +316,7 @@ function initSearch() {
 
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
+            if (input.closest('#global-search-modal')) return;
             if (!input.contains(e.target) && !resultsContainer.contains(e.target)) {
                 resultsContainer.classList.add('hidden');
             }

@@ -217,4 +217,33 @@ class CallLogController
             'dateTo' => $dateTo,
         ], 'print');
     }
+
+    public function printAudit(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classId = (int) $request->query('class_id', 0);
+        $category = $request->query('category');
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+
+        $filters = [];
+        if ($classId > 0) $filters['class_id'] = $classId;
+        if (!empty($category)) $filters['category'] = $category;
+        if (!empty($dateFrom)) $filters['date_from'] = $dateFrom;
+        if (!empty($dateTo)) $filters['date_to'] = $dateTo;
+
+        $calls = ParentCallLog::getAll($teacherId, $filters);
+        $user = Session::user();
+        $class = $classId > 0 ? SchoolClass::findById($classId) : null;
+
+        View::render('calls.print_audit', [
+            'title' => 'Parent Communication Audit Register',
+            'calls' => $calls,
+            'teacher' => $user,
+            'class' => $class,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo,
+            'category' => $category,
+        ], 'print');
+    }
 }

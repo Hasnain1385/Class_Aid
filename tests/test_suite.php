@@ -319,6 +319,58 @@ it('Dual-DB student search matches by First Name, Last Name, and Full Name', fun
     }
 });
 
+it('Supports editing class details, deleting subjects, and removing classes cleanly', function () use ($testTeacherId) {
+    // 1. Create temporary class for editing and removal test
+    $tempClassId = SchoolClass::create([
+        'teacher_id' => $testTeacherId,
+        'name' => 'Grade 8',
+        'section' => 'C',
+        'academic_year' => '2026-2027',
+        'is_home_class' => 0,
+    ]);
+    if ($tempClassId <= 0) {
+        throw new \Exception("Failed to create temporary class");
+    }
+
+    // 2. Add subject to temporary class
+    $tempSubId = Subject::create([
+        'class_id' => $tempClassId,
+        'name' => 'History',
+        'code' => 'HIS-08'
+    ]);
+    if ($tempSubId <= 0) {
+        throw new \Exception("Failed to create subject in temp class");
+    }
+
+    // 3. Edit class details
+    $updated = SchoolClass::update($tempClassId, [
+        'name' => 'Grade 8 Advanced',
+        'section' => 'A1',
+        'academic_year' => '2026-2027',
+        'is_home_class' => 0,
+    ]);
+    if (!$updated) {
+        throw new \Exception("Failed to update class details");
+    }
+
+    $verified = SchoolClass::findById($tempClassId);
+    if (!$verified || $verified['name'] !== 'Grade 8 Advanced' || $verified['section'] !== 'A1') {
+        throw new \Exception("Class update verification mismatch");
+    }
+
+    // 4. Delete subject
+    $subDeleted = Subject::delete($tempSubId);
+    if (!$subDeleted || Subject::findById($tempSubId) !== null) {
+        throw new \Exception("Failed to delete subject");
+    }
+
+    // 5. Delete class
+    $classDeleted = SchoolClass::delete($tempClassId);
+    if (!$classDeleted || SchoolClass::findById($tempClassId) !== null) {
+        throw new \Exception("Failed to delete class");
+    }
+});
+
 // -------------------------------------------------------------
 // Group 5: Attendance & Consecutive Absence Alerts
 // -------------------------------------------------------------
@@ -615,6 +667,19 @@ it('Protected paths filter strictly safeguards .env, database, and uploads', fun
 });
 
 it('Checks for GitHub updates with mock payload and detects new versions', function () {
+    // Ensure version is 1.0.0 for deterministic test
+    $baseDir = UpdateService::getBaseDir();
+    @file_put_contents($baseDir . '/version.json', json_encode([
+        'version' => '1.0.0',
+        'release_name' => 'Class Aid v1.0.0 (Liquid Glass)',
+        'release_date' => '2026-11-15',
+        'commit' => 'mock123',
+        'channel' => 'stable',
+        'github_repo' => 'Hasnain1385/Class_Aid',
+        'github_branch' => 'main'
+    ], JSON_PRETTY_PRINT));
+    Config::set('APP_VERSION', '1.0.0');
+
     // Inject mock HTTP response
     UpdateService::$mockHttpClient = function (string $url, array $headers): array {
         if (str_contains($url, '/releases/latest')) {
