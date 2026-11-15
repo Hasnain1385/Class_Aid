@@ -5,15 +5,14 @@
         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200 mb-1.5">
             Teacher Email Address
         </label>
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+        <div class="glass-input-group">
+            <div class="input-addon-box">
                 <i data-lucide="mail" class="w-4 h-4"></i>
             </div>
             <input type="email" 
                    name="email" 
                    required 
                    autocomplete="email"
-                   class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-slate-400"
                    placeholder="e.g. teacher@school.edu">
         </div>
     </div>
@@ -27,15 +26,14 @@
                 Forgot Password?
             </a>
         </div>
-        <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
+        <div class="glass-input-group">
+            <div class="input-addon-box">
                 <i data-lucide="lock" class="w-4 h-4"></i>
             </div>
             <input type="password" 
                    name="password" 
                    required 
                    autocomplete="current-password"
-                   class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-slate-400"
                    placeholder="••••••••">
         </div>
     </div>

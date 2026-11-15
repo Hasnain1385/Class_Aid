@@ -181,6 +181,7 @@ $router->post('/students/import/scan', [StudentController::class, 'bulkImportSca
 $router->post('/students/import/commit', [StudentController::class, 'bulkImportCommit'], ['auth']);
 $router->get('/students/import/template', [StudentController::class, 'downloadTemplate'], ['auth']);
 $router->get('/students/search/api', [StudentController::class, 'searchApi'], ['auth']);
+$router->get('/api/students/{id}/attendance-history', [StudentController::class, 'attendanceHistoryApi'], ['auth']);
 $router->get('/students/{id}', [StudentController::class, 'show'], ['auth']);
 $router->get('/students/{id}/edit', [StudentController::class, 'edit'], ['auth']);
 $router->post('/students/{id}', [StudentController::class, 'update'], ['auth']);
@@ -191,6 +192,7 @@ $router->get('/calls/create', [CallLogController::class, 'create'], ['auth']);
 $router->post('/calls', [CallLogController::class, 'store'], ['auth']);
 $router->post('/calls/toggle-status/{id}', [CallLogController::class, 'toggleStatus'], ['auth']);
 $router->get('/calls/export/csv', [CallLogController::class, 'exportCsv'], ['auth']);
+$router->get('/calls/print/audit', [CallLogController::class, 'printAudit'], ['auth']);
 $router->get('/calls/print/student/{id}', [CallLogController::class, 'printStudent'], ['auth']);
 $router->get('/calls/print/class/{id}', [CallLogController::class, 'printClass'], ['auth']);
 
@@ -223,6 +225,7 @@ $router->post('/results/import/commit', [ResultController::class, 'bulkImportCom
 $router->get('/results/import/template/{id}', [ResultController::class, 'downloadTemplate'], ['auth']);
 $router->get('/results/enter/{id}', [ResultController::class, 'enterMarks'], ['auth']);
 $router->post('/results/enter/{id}', [ResultController::class, 'saveMarks'], ['auth']);
+$router->get('/results/print/exam/{id}', [ResultController::class, 'printExam'], ['auth']);
 $router->get('/results/report/{id}', [ResultController::class, 'studentReport'], ['auth']);
 
 // 5. Dispatch Request

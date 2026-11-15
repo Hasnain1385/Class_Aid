@@ -17,11 +17,11 @@
             <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 New Password (Min 6 Characters) <span class="text-rose-500">*</span>
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div class="glass-input-group">
+                <div class="input-addon-box">
                     <i data-lucide="lock" class="w-4 h-4"></i>
                 </div>
-                <input type="password" id="password" name="password" minlength="6" required autofocus placeholder="••••••••" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400">
+                <input type="password" id="password" name="password" minlength="6" required autofocus placeholder="••••••••">
             </div>
         </div>
 
@@ -29,11 +29,11 @@
             <label for="password_confirmation" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                 Confirm New Password <span class="text-rose-500">*</span>
             </label>
-            <div class="relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <div class="glass-input-group">
+                <div class="input-addon-box">
                     <i data-lucide="shield-check" class="w-4 h-4"></i>
                 </div>
-                <input type="password" id="password_confirmation" name="password_confirmation" minlength="6" required placeholder="••••••••" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400">
+                <input type="password" id="password_confirmation" name="password_confirmation" minlength="6" required placeholder="••••••••">
             </div>
         </div>
 

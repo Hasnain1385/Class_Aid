@@ -18,7 +18,14 @@ class AttendanceController
     {
         $teacherId = Session::userId();
         $classes = SchoolClass::getAllByTeacher($teacherId);
-        $selectedDate = $request->query('date', date('Y-m-d'));
+        $selectedDate = (string) $request->query('date', date('Y-m-d'));
+
+        foreach ($classes as &$c) {
+            $existing = Attendance::getByClassAndDate((int) $c['id'], $selectedDate);
+            $c['attendance_recorded'] = !empty($existing);
+            $c['recorded_count'] = count($existing);
+        }
+        unset($c);
 
         View::render('attendance.index', [
             'title' => 'Attendance Management',
@@ -86,9 +93,16 @@ class AttendanceController
             Response::redirect("/attendance/sheet/{$cId}?date={$date}");
         }
 
+        $existing = Attendance::getByClassAndDate($cId, $date);
+        $wasAlreadySaved = !empty($existing);
+
         Attendance::recordBatch($cId, $date, $records);
 
-        Session::flash('success', "Attendance for {$date} saved successfully.");
+        $msg = $wasAlreadySaved
+            ? "Roll call for {$date} updated in-place. Existing records were successfully edited without duplicates."
+            : "Attendance for {$date} saved successfully.";
+
+        Session::flash('success', $msg);
         Response::redirect("/attendance/sheet/{$cId}?date={$date}");
     }
 
@@ -199,7 +213,11 @@ class AttendanceController
     {
         $teacherId = Session::userId();
         $classId = (int) $request->query('class_id', 0);
-        $class = SchoolClass::findById($classId);
+        if ($classId <= 0) {
+            $classes = SchoolClass::getAllByTeacher($teacherId);
+            $classId = !empty($classes) ? (int) $classes[0]['id'] : 0;
+        }
+        $class = $classId > 0 ? SchoolClass::findById($classId) : null;
 
         if (!$class || ((int)($class['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin())) {
             Session::flash('error', 'Class not found or access denied.');

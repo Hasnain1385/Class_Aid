@@ -142,24 +142,32 @@ class CallLogController
             'Status',
         ];
 
+        $sanitizeCsv = static function (mixed $val): string {
+            if ($val === null) return '';
+            $text = (string) $val;
+            $text = strip_tags($text);
+            $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            return trim(preg_replace('/[\r\n\t]+/', ' ', $text));
+        };
+
         $rows = [];
         foreach ($logs as $l) {
             $rows[] = [
                 $l['id'],
-                $l['call_timestamp'],
-                $l['student_admin_id'],
-                $l['first_name'] . ' ' . $l['last_name'],
-                $l['class_name'] . ' - ' . $l['class_section'],
-                $l['contact_person_name'],
-                $l['relationship'],
-                $l['phone_dialed'],
-                $l['call_type'],
-                $l['call_category'],
-                $l['discussion_summary'],
-                $l['parent_response'],
-                $l['follow_up_required'] ? 'Yes' : 'No',
-                $l['follow_up_date'] ?? 'N/A',
-                $l['status'],
+                $sanitizeCsv($l['call_timestamp']),
+                $sanitizeCsv($l['student_admin_id']),
+                $sanitizeCsv($l['first_name'] . ' ' . $l['last_name']),
+                $sanitizeCsv($l['class_name'] . ' - ' . $l['class_section']),
+                $sanitizeCsv($l['contact_person_name']),
+                $sanitizeCsv($l['relationship']),
+                $sanitizeCsv($l['phone_dialed']),
+                $sanitizeCsv($l['call_type']),
+                $sanitizeCsv($l['call_category']),
+                $sanitizeCsv($l['discussion_summary']),
+                $sanitizeCsv($l['parent_response']),
+                !empty($l['follow_up_required']) ? 'Yes' : 'No',
+                $sanitizeCsv($l['follow_up_date'] ?? 'N/A'),
+                $sanitizeCsv($l['status']),
             ];
         }
 

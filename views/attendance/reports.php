@@ -143,10 +143,17 @@
                     </button>
                 </div>
 
-                <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-sm transition-all flex items-center gap-1.5">
-                    <i data-lucide="filter" class="w-4 h-4"></i>
-                    <span>Apply Filter</span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="printFilteredAttendanceReport()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="printer" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Print Filtered A4 Report</span>
+                    </button>
+
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="filter" class="w-4 h-4"></i>
+                        <span>Apply Filter</span>
+                    </button>
+                </div>
             </div>
 
         </form>
@@ -310,6 +317,10 @@
                                     </td>
                                     <td class="py-2.5 px-3 text-right">
                                         <div class="flex items-center justify-end gap-1">
+                                            <!-- Print Single Student A4 Report -->
+                                            <a href="/attendance/print/report?class_id=<?= $selectedClass['id'] ?>&scope=single&student_id=<?= $stu['id'] ?>&date_from=<?= urlencode($dateFrom) ?>&date_to=<?= urlencode($dateTo) ?>" target="_blank" class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/20 transition-colors" title="Print Student A4 Attendance Sheet">
+                                                <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                                            </a>
                                             <?php if ($stu['consecutive_absences'] >= 2 || $stu['absent_count'] >= 2): ?>
                                                 <a href="/calls/create?student_id=<?= $stu['id'] ?>&category=Absenteeism" class="p-1.5 rounded-lg bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-500/20 transition-colors" title="Log Follow-up Call">
                                                     <i data-lucide="phone-outgoing" class="w-3.5 h-3.5"></i>
@@ -380,5 +391,17 @@
             fromInput.value = `${past.getFullYear()}-${String(past.getMonth() + 1).padStart(2, '0')}-${String(past.getDate()).padStart(2, '0')}`;
         }
         document.getElementById('filter-form').submit();
+    }
+
+    function printFilteredAttendanceReport() {
+        const form = document.getElementById('filter-form');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+
+        for (const [key, value] of formData.entries()) {
+            params.append(key, value);
+        }
+
+        window.open('/attendance/print/report?' + params.toString(), '_blank');
     }
 </script>

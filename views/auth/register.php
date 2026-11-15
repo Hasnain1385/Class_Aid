@@ -17,11 +17,11 @@
                 <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Your Full Name <span class="text-rose-500">*</span>
                 </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div class="glass-input-group">
+                    <div class="input-addon-box">
                         <i data-lucide="user" class="w-4 h-4"></i>
                     </div>
-                    <input type="text" id="name" name="name" required placeholder="e.g. Mr. David Clark" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400">
+                    <input type="text" id="name" name="name" required placeholder="e.g. Mr. David Clark">
                 </div>
             </div>
 
@@ -29,11 +29,11 @@
                 <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Work / School Email <span class="text-rose-500">*</span>
                 </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div class="glass-input-group">
+                    <div class="input-addon-box">
                         <i data-lucide="mail" class="w-4 h-4"></i>
                     </div>
-                    <input type="email" id="email" name="email" required placeholder="teacher@school.edu" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400 font-mono">
+                    <input type="email" id="email" name="email" required placeholder="teacher@school.edu" class="font-mono">
                 </div>
             </div>
 
@@ -41,11 +41,11 @@
                 <label for="password" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Password (Min 6 Characters) <span class="text-rose-500">*</span>
                 </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div class="glass-input-group">
+                    <div class="input-addon-box">
                         <i data-lucide="lock" class="w-4 h-4"></i>
                     </div>
-                    <input type="password" id="password" name="password" minlength="6" required placeholder="••••••••" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400">
+                    <input type="password" id="password" name="password" minlength="6" required placeholder="••••••••">
                 </div>
             </div>
 
@@ -53,11 +53,11 @@
                 <label for="school_name" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     School / Institution Name
                 </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div class="glass-input-group">
+                    <div class="input-addon-box">
                         <i data-lucide="building" class="w-4 h-4"></i>
                     </div>
-                    <input type="text" id="school_name" name="school_name" placeholder="e.g. St. Jude High School" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400">
+                    <input type="text" id="school_name" name="school_name" placeholder="e.g. St. Jude High School">
                 </div>
             </div>
 
@@ -65,11 +65,11 @@
                 <label for="phone" class="block text-xs font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 mb-1.5">
                     Phone / WhatsApp Number (For Parent Communication Journal)
                 </label>
-                <div class="relative">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                <div class="glass-input-group">
+                    <div class="input-addon-box">
                         <i data-lucide="phone" class="w-4 h-4"></i>
                     </div>
-                    <input type="text" id="phone" name="phone" placeholder="+1 555-0199" class="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl glass-input placeholder-gray-400 font-mono">
+                    <input type="text" id="phone" name="phone" placeholder="+1 555-0199" class="font-mono">
                 </div>
             </div>
         </div>

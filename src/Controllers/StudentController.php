@@ -364,4 +364,55 @@ class StudentController
         fclose($output);
         exit;
     }
+
+    public function attendanceHistoryApi(Request $request, string $studentId): void
+    {
+        $sId = (int) $studentId;
+        $student = Student::findById($sId);
+        if (!$student) {
+            Response::json(['success' => false, 'message' => 'Student not found.'], 404);
+            return;
+        }
+
+        $class = SchoolClass::findById((int) $student['class_id']);
+        if (!$class || ((int)($class['teacher_id'] ?? 0) !== (int)Session::userId() && !Session::isSuperAdmin())) {
+            Response::json(['success' => false, 'message' => 'Access denied.'], 403);
+            return;
+        }
+
+        $history = Attendance::getStudentHistory($sId, 30);
+        $consecutive = Student::getConsecutiveAbsences($sId);
+
+        $p = 0; $a = 0; $l = 0; $e = 0;
+        foreach ($history as $h) {
+            $st = strtoupper((string)($h['status'] ?? ''));
+            if ($st === 'P') $p++;
+            elseif ($st === 'A') $a++;
+            elseif ($st === 'L') $l++;
+            elseif ($st === 'E') $e++;
+        }
+        $total = $p + $a + $l + $e;
+        $rate = ($total > 0) ? round(($p / $total) * 100, 1) : 0.0;
+
+        Response::json([
+            'success' => true,
+            'student' => [
+                'id' => $student['id'],
+                'admin_id' => $student['student_admin_id'],
+                'name' => $student['first_name'] . ' ' . $student['last_name'],
+                'class' => $class['name'] . ' - ' . $class['section'],
+                'class_id' => $class['id'],
+                'consecutive_absences' => $consecutive,
+                'rate' => $rate,
+                'counts' => [
+                    'present' => $p,
+                    'absent' => $a,
+                    'late' => $l,
+                    'excused' => $e,
+                    'total' => $total,
+                ],
+            ],
+            'history' => $history,
+        ]);
+    }
 }

@@ -49,26 +49,26 @@
 }
 
 .dark {
-    /* Base Surfaces */
-    --bg-page: #090d16;
-    --ambient-mesh-1: rgba(99, 102, 241, 0.12);
-    --ambient-mesh-2: rgba(56, 189, 248, 0.08);
-    --ambient-mesh-3: rgba(168, 85, 247, 0.08);
+    /* Base Surfaces: Deep Royal Navy & Subtle Cobalt Ambience */
+    --bg-page: #060d1a;
+    --ambient-mesh-1: rgba(29, 78, 216, 0.16);
+    --ambient-mesh-2: rgba(30, 58, 138, 0.14);
+    --ambient-mesh-3: rgba(2, 132, 199, 0.08);
 
     /* Liquid Glass Cards */
-    --card-bg: rgba(15, 23, 42, 0.75);
-    --card-bg-subtle: rgba(15, 23, 42, 0.5);
-    --card-border: rgba(255, 255, 255, 0.09);
-    --card-border-hover: rgba(255, 255, 255, 0.22);
-    --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45), 0 2px 6px 0 rgba(0, 0, 0, 0.2);
-    --card-shadow-hover: 0 16px 40px -4px rgba(0, 0, 0, 0.6), 0 4px 12px 0 rgba(0, 0, 0, 0.35);
+    --card-bg: rgba(10, 25, 47, 0.78);
+    --card-bg-subtle: rgba(10, 25, 47, 0.55);
+    --card-border: rgba(59, 130, 246, 0.16);
+    --card-border-hover: rgba(96, 165, 250, 0.32);
+    --card-shadow: 0 8px 32px 0 rgba(2, 6, 23, 0.65), 0 2px 6px 0 rgba(29, 78, 216, 0.08);
+    --card-shadow-hover: 0 16px 40px -4px rgba(2, 6, 23, 0.8), 0 4px 12px 0 rgba(29, 78, 216, 0.18);
     --card-specular: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12);
     --card-specular-hover: inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.22);
     --glass-blur: blur(24px) saturate(200%);
 
     /* Header & Navigation Bar Glass */
-    --nav-glass-bg: rgba(10, 15, 29, 0.9);
-    --nav-glass-border: rgba(255, 255, 255, 0.08);
+    --nav-glass-bg: rgba(8, 18, 38, 0.92);
+    --nav-glass-border: rgba(59, 130, 246, 0.16);
 
     /* High-Contrast Typography */
     --text-primary: #f8fafc;
@@ -77,19 +77,19 @@
     --text-subtle: #64748b;
 
     /* Form Controls */
-    --input-bg: rgba(15, 23, 42, 0.92);
-    --input-border: rgba(255, 255, 255, 0.16);
-    --input-border-hover: rgba(255, 255, 255, 0.35);
-    --input-focus: #6366f1;
-    --input-focus-ring: rgba(99, 102, 241, 0.35);
+    --input-bg: rgba(10, 25, 47, 0.92);
+    --input-border: rgba(59, 130, 246, 0.25);
+    --input-border-hover: rgba(96, 165, 250, 0.5);
+    --input-focus: #2563eb;
+    --input-focus-ring: rgba(37, 99, 235, 0.35);
 
     /* Skeleton Ladders (Dark) */
-    --skeleton-base: rgba(255, 255, 255, 0.06);
-    --skeleton-shimmer: rgba(255, 255, 255, 0.13);
+    --skeleton-base: rgba(59, 130, 246, 0.08);
+    --skeleton-shimmer: rgba(59, 130, 246, 0.16);
 
-    /* Brand Accents */
-    --accent-primary: #6366f1;
-    --accent-hover: #4f46e5;
+    /* Brand Accents (Royal Blue) */
+    --accent-primary: #2563eb;
+    --accent-hover: #1d4ed8;
 }
 
 /* ==========================================================================
@@ -196,6 +196,64 @@ select.glass-input {
 .relative > .absolute.left-0 ~ input.glass-input,
 .relative > .absolute.left-0 ~ .glass-input {
     padding-left: 2.625rem !important; /* 42px: ensures 14px clear gutter past the 16px/20px icon */
+}
+
+/* ==========================================================================
+   Fixed Boxed State Input Addons (Physical Container — Zero Text Underlap)
+   ========================================================================== */
+.glass-input-group {
+    display: flex !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    border-radius: 0.75rem !important; /* rounded-xl */
+    background: var(--input-bg) !important;
+    border: 1px solid var(--input-border) !important;
+    overflow: hidden !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.glass-input-group:focus-within {
+    border-color: var(--input-focus) !important;
+    box-shadow: 0 0 0 3px var(--input-focus-ring) !important;
+}
+
+.input-addon-box {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.625rem 0.875rem !important;
+    background: rgba(148, 163, 184, 0.12) !important;
+    border-right: 1px solid var(--input-border) !important;
+    color: var(--text-muted) !important;
+    flex-shrink: 0 !important;
+    user-select: none;
+    pointer-events: none;
+}
+
+.dark .input-addon-box {
+    background: rgba(30, 58, 138, 0.35) !important;
+    border-right: 1px solid var(--input-border) !important;
+    color: #93c5fd !important;
+}
+
+.glass-input-group input,
+.glass-input-group select {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0.625rem 0.875rem !important;
+    font-size: 0.875rem !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    color: var(--text-primary) !important;
+}
+
+.glass-input-group input::placeholder {
+    color: var(--text-subtle) !important;
+    opacity: 0.85;
 }
 
 /* Dedicated input with trailing icon/button */

@@ -71,7 +71,7 @@
     <!-- Top Navigation Bar (Liquid Glass) -->
     <header class="sticky top-0 z-40 w-full liquid-header shadow-sm">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-            
+
             <!-- Brand Logo & School Name -->
             <div class="flex items-center gap-3 flex-shrink-0">
                 <a href="/dashboard" class="flex items-center gap-2.5 group">
@@ -92,16 +92,16 @@
             <!-- Global Live Student Search Trigger -->
             <div class="flex items-center">
                 <!-- Mobile Search Icon Button -->
-                <button type="button" 
-                        onclick="openGlobalSearch()" 
-                        class="sm:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer" 
+                <button type="button"
+                        onclick="openGlobalSearch()"
+                        class="sm:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                         title="Search Students (Ctrl+K)">
                     <i data-lucide="search" class="w-5 h-5"></i>
                 </button>
 
                 <!-- Desktop Search Trigger Bar -->
-                <button type="button" 
-                        onclick="openGlobalSearch()" 
+                <button type="button"
+                        onclick="openGlobalSearch()"
                         class="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl glass-input text-slate-400 dark:text-slate-500 hover:border-indigo-500 hover:text-slate-600 dark:hover:text-slate-300 transition-all text-xs w-60 md:w-72 cursor-pointer text-left">
                     <i data-lucide="search" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
                     <span class="flex-1 truncate">Search students (name, ID)...</span>
@@ -121,10 +121,10 @@
 
                 <!-- Notification Center Bell & Flyout -->
                 <div class="relative" id="notifications-wrapper">
-                    <button type="button" 
-                            id="notifications-bell-btn" 
-                            onclick="toggleNotificationsDropdown(event)" 
-                            class="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none" 
+                    <button type="button"
+                            id="notifications-bell-btn"
+                            onclick="toggleNotificationsDropdown(event)"
+                            class="relative p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none"
                             title="Notifications & Announcements"
                             aria-expanded="false"
                             aria-haspopup="true">
@@ -136,9 +136,9 @@
                     </button>
 
                     <!-- Notifications Dropdown Flyout (Liquid Glass) -->
-                    <div id="notifications-flyout" 
+                    <div id="notifications-flyout"
                          class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl glass-card border border-slate-200/90 dark:border-white/10 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150 origin-top-right">
-                        
+
                         <!-- Header Bar -->
                         <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -158,9 +158,9 @@
 
                         <!-- Segmented Switcher -->
                         <div class="flex border-b border-slate-200/80 dark:border-white/10 bg-slate-100/70 dark:bg-slate-950/70 p-1 text-xs gap-1">
-                            <button type="button" 
-                                    id="notif-tab-announcements" 
-                                    onclick="switchNotifTab('announcements')" 
+                            <button type="button"
+                                    id="notif-tab-announcements"
+                                    onclick="switchNotifTab('announcements')"
                                     class="flex-1 py-1.5 px-3 rounded-lg font-bold text-center transition-all bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm flex items-center justify-center gap-1.5">
                                 <i data-lucide="megaphone" class="w-3.5 h-3.5"></i>
                                 <span>Announcements</span>
@@ -168,9 +168,9 @@
                                     <?= count($activeAnnouncements) ?>
                                 </span>
                             </button>
-                            <button type="button" 
-                                    id="notif-tab-reminders" 
-                                    onclick="switchNotifTab('reminders')" 
+                            <button type="button"
+                                    id="notif-tab-reminders"
+                                    onclick="switchNotifTab('reminders')"
                                     class="flex-1 py-1.5 px-3 rounded-lg font-medium text-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all flex items-center justify-center gap-1.5">
                                 <i data-lucide="calendar-clock" class="w-3.5 h-3.5"></i>
                                 <span>Reminders</span>
@@ -194,7 +194,7 @@
                                 </div>
                             <?php else: ?>
                                 <?php foreach ($activeAnnouncements as $ann): ?>
-                                    <?php 
+                                    <?php
                                         $annMeta = \App\Models\Announcement::TYPES[$ann['type']] ?? \App\Models\Announcement::TYPES['info'];
                                     ?>
                                     <div class="ann-item p-3.5 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer transition-colors flex items-start gap-3 relative group"
@@ -309,50 +309,74 @@
     </header>
 
     <!-- Desktop Navigation Ribbon (Liquid Glass) -->
-    <nav class="hidden md:block liquid-header border-b transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-1.5 gap-4">
-            <div class="flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0 flex-1">
-                <a href="/dashboard" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-500"></i>
-                    <span>Dashboard</span>
-                </a>
-                <a href="/calls" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i>
-                    <span>Parent Calls</span>
-                </a>
-                <a href="/attendance" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="calendar-check" class="w-4 h-4 text-blue-500"></i>
-                    <span>Attendance</span>
-                </a>
-                <a href="/attendance/reports" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-500"></i>
-                    <span>Attendance Reports</span>
-                </a>
-                <a href="/students" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="users" class="w-4 h-4 text-violet-500"></i>
-                    <span>Students</span>
-                </a>
-                <a href="/results" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
-                    <span>Marks & Exams</span>
-                </a>
-                <a href="/classes" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="book-open" class="w-4 h-4 text-sky-500"></i>
-                    <span>Classes & Subjects</span>
-                </a>
-                <a href="/reminders" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
-                    <i data-lucide="calendar-clock" class="w-4 h-4 text-rose-500"></i>
-                    <span>Reminders</span>
-                </a>
+    <nav class="hidden md:block liquid-header border-b transition-colors relative z-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-1.5 gap-3">
+
+            <!-- Scrollable Nav Section with Arrow Buttons & Smooth Wheel Scroll -->
+            <div class="relative flex items-center min-w-0 flex-1 overflow-hidden group">
+                <!-- Left Scroll Arrow Button -->
+                <button type="button"
+                        id="nav-scroll-left-btn"
+                        onclick="scrollNavRibbon(-180)"
+                        aria-label="Scroll navigation left"
+                        class="hidden p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 mr-1.5 z-10 cursor-pointer">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Nav Ribbon Scroll Container -->
+                <div id="desktop-nav-ribbon"
+                     class="flex items-center gap-1 overflow-x-auto no-scrollbar scroll-smooth min-w-0 flex-1 py-0.5">
+                    <a href="/dashboard" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-500"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/calls" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="phone-call" class="w-4 h-4 text-emerald-500"></i>
+                        <span>Parent Calls</span>
+                    </a>
+                    <a href="/attendance" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="calendar-check" class="w-4 h-4 text-blue-500"></i>
+                        <span>Attendance</span>
+                    </a>
+                    <a href="/attendance/reports" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-500"></i>
+                        <span>Attendance Reports</span>
+                    </a>
+                    <a href="/students" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="users" class="w-4 h-4 text-violet-500"></i>
+                        <span>Students</span>
+                    </a>
+                    <a href="/results" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="award" class="w-4 h-4 text-amber-500"></i>
+                        <span>Marks & Exams</span>
+                    </a>
+                    <a href="/classes" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="book-open" class="w-4 h-4 text-sky-500"></i>
+                        <span>Classes & Subjects</span>
+                    </a>
+                    <a href="/reminders" class="flex items-center gap-2 px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-white/80 dark:hover:bg-slate-800/80 transition-colors whitespace-nowrap flex-shrink-0">
+                        <i data-lucide="calendar-clock" class="w-4 h-4 text-rose-500"></i>
+                        <span>Reminders</span>
+                    </a>
+                </div>
+
+                <!-- Right Scroll Arrow Button -->
+                <button type="button"
+                        id="nav-scroll-right-btn"
+                        onclick="scrollNavRibbon(180)"
+                        aria-label="Scroll navigation right"
+                        class="hidden p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 ml-1.5 z-10 cursor-pointer">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
             </div>
 
-            <!-- Profile & Subscription Badge Links -->
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <a href="/profile" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 transition-colors">
+            <!-- Profile & Subscription Badge Links (Fixed Container: Never Overlapped) -->
+            <div class="flex items-center gap-2 flex-shrink-0 z-20 pl-3 border-l border-slate-200 dark:border-slate-800">
+                <a href="/profile" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 transition-colors whitespace-nowrap">
                     <i data-lucide="user-cog" class="w-3.5 h-3.5 text-indigo-500"></i>
                     <span>Profile</span>
                 </a>
-                <a href="/subscription" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition-all border border-indigo-500/30">
+                <a href="/subscription" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-500/25 transition-all border border-indigo-500/30 whitespace-nowrap">
                     <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
                     <span><?= !empty($userSubscription['plan_code']) ? strtoupper($userSubscription['plan_code']) : 'SaaS Plan' ?></span>
                 </a>
@@ -365,7 +389,7 @@
 
         <!-- Subscription Expiry Warning Banner (If within 7 days or expired) -->
         <?php if ($userSubscription && (!empty($userSubscription['is_expiring']) || !empty($userSubscription['is_expired']))): ?>
-            <?php 
+            <?php
                 $isExp = !empty($userSubscription['is_expired']);
                 $daysLeft = $userSubscription['days_left'] ?? 0;
             ?>
@@ -388,7 +412,7 @@
                 </a>
             </div>
         <?php endif; ?>
-        
+
         <!-- Flash Messages -->
         <?php if ($flashSuccess): ?>
             <div class="mb-5 p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 text-emerald-900 dark:text-emerald-100 flex items-center justify-between shadow-sm">
@@ -420,7 +444,7 @@
     <!-- Mobile-First Sticky Bottom Navigation Bar (Liquid Glass) -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 liquid-header px-2 py-1.5 shadow-lg border-t">
         <div class="grid grid-cols-5 text-center">
-            
+
             <a href="/dashboard" class="flex flex-col items-center justify-center py-1 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                 <span class="text-[10px] mt-1 font-medium">Home</span>
@@ -543,7 +567,7 @@
             document.getElementById('global-modal-ann-content').textContent = ann.content || '';
             document.getElementById('global-modal-ann-badge').textContent = (ann.type || 'info').toUpperCase();
             document.getElementById('global-modal-ann-date').textContent = 'Broadcasted on: ' + (ann.created_at || 'Recently');
-            
+
             const modal = document.getElementById('global-announcement-modal');
             modal.classList.remove('hidden');
             saveReadAnnouncementId(parseInt(ann.id, 10));
@@ -569,7 +593,7 @@
                 if (!isNaN(id)) allIds.push(id);
             });
             localStorage.setItem(STORAGE_KEY_READ_ANNOUNCEMENTS, JSON.stringify(allIds));
-            
+
             // Also if dashboard toasts are present, mark them read
             if (typeof markAllAnnouncementsRead === 'function') {
                 markAllAnnouncementsRead();
@@ -663,14 +687,14 @@
     </script>
 
     <!-- Global Search Modal Popup (Mobile-Optimized & Responsive) -->
-    <div id="global-search-modal" 
+    <div id="global-search-modal"
          class="hidden fixed inset-0 z-50 flex items-start justify-center pt-12 sm:pt-20 px-3 sm:px-4 bg-black/60 backdrop-blur-md"
          onclick="if(event.target === this) closeGlobalSearch()">
         <div class="relative w-full max-w-xl glass-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl rounded-2xl overflow-hidden search-wrapper">
             <!-- Search Header -->
             <div class="flex items-center px-4 py-3.5 border-b border-slate-200 dark:border-slate-800 gap-3">
                 <i data-lucide="search" class="w-5 h-5 text-indigo-500 flex-shrink-0"></i>
-                <input type="text" 
+                <input type="text"
                        id="global-modal-search-input"
                        class="global-student-search flex-1 bg-transparent border-0 outline-none text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:ring-0 p-0"
                        placeholder="Search student by name, phone, or Admin ID..."

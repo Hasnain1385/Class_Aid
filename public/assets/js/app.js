@@ -29,9 +29,9 @@ const PageLoader = {
             const href = link.getAttribute('href');
 
             // Skip anchors, javascript, external links, downloads, modal triggers
-            if (!href || href.startsWith('#') || href.startsWith('javascript:') || 
-                link.getAttribute('target') === '_blank' || 
-                link.hasAttribute('download') || 
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') ||
+                link.getAttribute('target') === '_blank' ||
+                link.hasAttribute('download') ||
                 link.dataset.noLoader !== undefined) {
                 return;
             }
@@ -516,6 +516,86 @@ const OverdueNotifications = {
 };
 
 // ==========================================================================
+// Desktop Navigation Ribbon Scroll Engine (Hover, Mouse Wheel & Arrows)
+// ==========================================================================
+const NavRibbonScroll = {
+    ribbon: null,
+    leftBtn: null,
+    rightBtn: null,
+
+    init() {
+        this.ribbon = document.getElementById('desktop-nav-ribbon');
+        this.leftBtn = document.getElementById('nav-scroll-left-btn');
+        this.rightBtn = document.getElementById('nav-scroll-right-btn');
+
+        if (!this.ribbon) return;
+
+        // Horizontal mouse-wheel support
+        this.ribbon.addEventListener('wheel', (e) => {
+            if (e.deltaY !== 0) {
+                e.preventDefault();
+                this.ribbon.scrollLeft += e.deltaY;
+                this.updateArrows();
+            }
+        }, { passive: false });
+
+        this.ribbon.addEventListener('scroll', () => {
+            this.updateArrows();
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+            this.updateArrows();
+        });
+
+        // Initialize state
+        this.updateArrows();
+    },
+
+    scroll(amount) {
+        if (!this.ribbon) return;
+        this.ribbon.scrollBy({ left: amount, behavior: 'smooth' });
+        setTimeout(() => this.updateArrows(), 250);
+    },
+
+    updateArrows() {
+        if (!this.ribbon || !this.leftBtn || !this.rightBtn) return;
+        const maxScroll = this.ribbon.scrollWidth - this.ribbon.clientWidth;
+
+        // If content fits completely without scroll
+        if (maxScroll <= 4) {
+            this.leftBtn.classList.add('hidden');
+            this.rightBtn.classList.add('hidden');
+            return;
+        }
+
+        // Show buttons
+        this.leftBtn.classList.remove('hidden');
+        this.rightBtn.classList.remove('hidden');
+
+        // Toggle state based on scroll boundaries
+        if (this.ribbon.scrollLeft <= 5) {
+            this.leftBtn.classList.add('opacity-30', 'pointer-events-none');
+            this.leftBtn.classList.remove('opacity-100');
+        } else {
+            this.leftBtn.classList.remove('opacity-30', 'pointer-events-none');
+            this.leftBtn.classList.add('opacity-100');
+        }
+
+        if (this.ribbon.scrollLeft >= maxScroll - 5) {
+            this.rightBtn.classList.add('opacity-30', 'pointer-events-none');
+            this.rightBtn.classList.remove('opacity-100');
+        } else {
+            this.rightBtn.classList.remove('opacity-30', 'pointer-events-none');
+            this.rightBtn.classList.add('opacity-100');
+        }
+    }
+};
+
+window.scrollNavRibbon = function(amount) {
+    NavRibbonScroll.scroll(amount);
+};
+
+// ==========================================================================
 // DOM Initialization
 // ==========================================================================
 function initApp() {
@@ -524,6 +604,7 @@ function initApp() {
     initSearch();
     initAttendanceToggles();
     OverdueNotifications.init();
+    NavRibbonScroll.init();
     if (typeof lucide !== 'undefined' && typeof lucide.createIcons === 'function') {
         lucide.createIcons();
     }
