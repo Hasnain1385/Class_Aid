@@ -41,12 +41,10 @@
                         Billing Cycle Type <span class="text-rose-500">*</span>
                     </label>
                     <select id="cycle" name="cycle" class="w-full px-3 py-2.5 text-xs rounded-xl glass-input">
-                        <option value="monthly">Monthly</option>
-                        <option value="quarterly">Quarterly</option>
-                        <option value="semi_annual">Semi-Annual</option>
-                        <option value="annual" selected>Annual</option>
-                        <option value="lifetime">Lifetime (No Expiry)</option>
                         <option value="trial">Free Trial</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="annual" selected>Annually</option>
+                        <option value="lifetime">Lifetime (No Expiry)</option>
                     </select>
                 </div>
 

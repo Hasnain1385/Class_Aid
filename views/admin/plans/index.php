@@ -94,7 +94,7 @@
                             </button>
                         </form>
 
-                        <?php if (!in_array($p['code'], ['trial', 'monthly', 'annual'], true)): ?>
+                        <?php if (!in_array($p['code'], ['trial', 'monthly', 'annual', 'lifetime'], true)): ?>
                             <form method="POST" action="/admin/plans/<?= $p['id'] ?>/delete" onsubmit="return confirm('Delete this custom plan?');">
                                 <?= $csrf() ?>
                                 <button type="submit" class="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition-colors cursor-pointer" title="Delete Plan">

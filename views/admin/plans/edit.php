@@ -36,12 +36,10 @@
                         Billing Cycle Type <span class="text-rose-500">*</span>
                     </label>
                     <select id="cycle" name="cycle" class="w-full px-3 py-2.5 text-xs rounded-xl glass-input">
-                        <option value="monthly" <?= $plan['cycle'] === 'monthly' ? 'selected' : '' ?>>Monthly</option>
-                        <option value="quarterly" <?= $plan['cycle'] === 'quarterly' ? 'selected' : '' ?>>Quarterly</option>
-                        <option value="semi_annual" <?= $plan['cycle'] === 'semi_annual' ? 'selected' : '' ?>>Semi-Annual</option>
-                        <option value="annual" <?= $plan['cycle'] === 'annual' ? 'selected' : '' ?>>Annual</option>
-                        <option value="lifetime" <?= $plan['cycle'] === 'lifetime' ? 'selected' : '' ?>>Lifetime (No Expiry)</option>
                         <option value="trial" <?= $plan['cycle'] === 'trial' ? 'selected' : '' ?>>Free Trial</option>
+                        <option value="monthly" <?= $plan['cycle'] === 'monthly' ? 'selected' : '' ?>>Monthly</option>
+                        <option value="annual" <?= $plan['cycle'] === 'annual' ? 'selected' : '' ?>>Annually</option>
+                        <option value="lifetime" <?= $plan['cycle'] === 'lifetime' ? 'selected' : '' ?>>Lifetime (No Expiry)</option>
                     </select>
                 </div>
 

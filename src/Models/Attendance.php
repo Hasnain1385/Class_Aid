@@ -10,29 +10,90 @@ use PDO;
 
 class Attendance
 {
-    public static function getByClassAndDate(int $classId, string $date): array
+    /**
+     * Check if the session is valid for the given date.
+     * Monday through Thursday and weekend have 2 roll calls: 'morning' and 'midday'.
+     * Friday has only 1 roll call: 'morning'.
+     */
+    public static function isValidSessionForDate(string $date, string $sessionType): bool
     {
+        $dayOfWeek = (int) date('N', strtotime($date));
+        if ($dayOfWeek === 5 && $sessionType === 'midday') {
+            return false;
+        }
+        return in_array($sessionType, ['morning', 'midday'], true);
+    }
+
+    /**
+     * Normalize session type: enforces 'morning' on Fridays, otherwise ensures 'morning' or 'midday'.
+     */
+    public static function normalizeSessionType(string $date, ?string $sessionType): string
+    {
+        $dayOfWeek = (int) date('N', strtotime($date));
+        if ($dayOfWeek === 5) {
+            return 'morning';
+        }
+        return in_array($sessionType, ['morning', 'midday'], true) ? $sessionType : 'morning';
+    }
+
+    public static function getByClassAndDate(int $classId, string $date, string $sessionType = 'morning'): array
+    {
+        $sessionType = self::normalizeSessionType($date, $sessionType);
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("
             SELECT a.*, s.student_admin_id, s.first_name, s.last_name, s.primary_phone
             FROM attendance a
             JOIN students s ON s.id = a.student_id
-            WHERE a.class_id = :class_id AND a.attendance_date = :date
+            WHERE a.class_id = :class_id 
+              AND a.attendance_date = :date
+              AND (a.session_type = :session_type OR a.session_type IS NULL)
             ORDER BY s.first_name ASC
         ");
-        $stmt->execute(['class_id' => $classId, 'date' => $date]);
+        $stmt->execute([
+            'class_id' => $classId,
+            'date' => $date,
+            'session_type' => $sessionType,
+        ]);
         return $stmt->fetchAll();
     }
 
-    public static function record(int $studentId, int $classId, string $date, string $status, ?string $remarks = null): bool
+    public static function getDailySessionStatus(int $classId, string $date): array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT session_type, COUNT(*) as count
+            FROM attendance
+            WHERE class_id = :class_id AND attendance_date = :date
+            GROUP BY session_type
+        ");
+        $stmt->execute(['class_id' => $classId, 'date' => $date]);
+        $rows = $stmt->fetchAll();
+        $status = ['morning' => 0, 'midday' => 0];
+        foreach ($rows as $r) {
+            $sType = $r['session_type'] ?: 'morning';
+            $status[$sType] = (int) $r['count'];
+        }
+        $isFriday = ((int) date('N', strtotime($date)) === 5);
+        return [
+            'is_friday' => $isFriday,
+            'morning_recorded' => $status['morning'] > 0,
+            'morning_count' => $status['morning'],
+            'midday_recorded' => $isFriday ? false : ($status['midday'] > 0),
+            'midday_count' => $status['midday'],
+            'is_fully_recorded' => $isFriday ? ($status['morning'] > 0) : ($status['morning'] > 0 && $status['midday'] > 0),
+        ];
+    }
+
+    public static function record(int $studentId, int $classId, string $date, string $status, ?string $remarks = null, string $sessionType = 'morning'): bool
     {
         return self::recordBatch($classId, $date, [
             $studentId => ['status' => $status, 'remarks' => $remarks]
-        ]);
+        ], $sessionType);
     }
 
-    public static function recordBatch(int $classId, string $date, array $records): bool
+    public static function recordBatch(int $classId, string $date, array $records, string $sessionType = 'morning'): bool
     {
+        $sessionType = self::normalizeSessionType($date, $sessionType);
         $pdo = Database::getConnection();
         $dbType = Config::get('DB_CONNECTION', 'sqlite');
 
@@ -44,15 +105,16 @@ class Attendance
 
                 if ($dbType === 'sqlite') {
                     $stmt = $pdo->prepare("
-                        INSERT INTO attendance (student_id, class_id, attendance_date, status, remarks)
-                        VALUES (:student_id, :class_id, :attendance_date, :status, :remarks)
-                        ON CONFLICT(student_id, attendance_date) 
+                        INSERT INTO attendance (student_id, class_id, attendance_date, session_type, status, remarks)
+                        VALUES (:student_id, :class_id, :attendance_date, :session_type, :status, :remarks)
+                        ON CONFLICT(student_id, attendance_date, session_type) 
                         DO UPDATE SET status = :status_up, remarks = :remarks_up
                     ");
                     $stmt->execute([
                         'student_id' => (int) $studentId,
                         'class_id' => $classId,
                         'attendance_date' => $date,
+                        'session_type' => $sessionType,
                         'status' => $status,
                         'remarks' => $remarks,
                         'status_up' => $status,
@@ -60,14 +122,15 @@ class Attendance
                     ]);
                 } else {
                     $stmt = $pdo->prepare("
-                        INSERT INTO attendance (student_id, class_id, attendance_date, status, remarks)
-                        VALUES (:student_id, :class_id, :attendance_date, :status, :remarks)
+                        INSERT INTO attendance (student_id, class_id, attendance_date, session_type, status, remarks)
+                        VALUES (:student_id, :class_id, :attendance_date, :session_type, :status, :remarks)
                         ON DUPLICATE KEY UPDATE status = VALUES(status), remarks = VALUES(remarks)
                     ");
                     $stmt->execute([
                         'student_id' => (int) $studentId,
                         'class_id' => $classId,
                         'attendance_date' => $date,
+                        'session_type' => $sessionType,
                         'status' => $status,
                         'remarks' => $remarks,
                     ]);
@@ -190,7 +253,7 @@ class Attendance
 
         // Fetch all attendance rows for this class in date range
         $attSql = "
-            SELECT student_id, attendance_date, status, remarks 
+            SELECT student_id, attendance_date, session_type, status, remarks 
             FROM attendance 
             WHERE class_id = :class_id 
               AND attendance_date BETWEEN :d_from AND :d_to
@@ -206,7 +269,13 @@ class Attendance
         // Map records by [student_id][attendance_date] => row
         $recordsMap = [];
         foreach ($rawRecords as $r) {
-            $recordsMap[(int) $r['student_id']][$r['attendance_date']] = $r;
+            $sId = (int) $r['student_id'];
+            $d = $r['attendance_date'];
+            $sType = $r['session_type'] ?: 'morning';
+            $recordsMap[$sId][$d][$sType] = $r;
+            if (!isset($recordsMap[$sId][$d]['status']) || $sType === 'morning') {
+                $recordsMap[$sId][$d] = $r;
+            }
         }
 
         $summary = [
@@ -218,6 +287,9 @@ class Attendance
             'total_e' => 0,
             'chronic_count' => 0,
         ];
+
+        $studentIds = array_column($students, 'id');
+        $consecutiveMap = Student::getBatchConsecutiveAbsences($studentIds);
 
         foreach ($students as &$stu) {
             $sId = (int) $stu['id'];
@@ -234,7 +306,7 @@ class Attendance
 
             $totalSessions = $p + $a + $l + $e;
             $rate = ($totalSessions > 0) ? round(($p / $totalSessions) * 100, 1) : 0.0;
-            $consecutive = Student::getConsecutiveAbsences($sId);
+            $consecutive = $consecutiveMap[$sId] ?? 0;
 
             $stu['present_count'] = $p;
             $stu['absent_count'] = $a;

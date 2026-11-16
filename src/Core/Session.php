@@ -6,18 +6,70 @@ namespace App\Core;
 
 class Session
 {
+    private static bool $isStarting = false;
+
     public static function start(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            if (!headers_sent()) {
-                session_set_cookie_params([
-                    'lifetime' => 86400 * 7, // 7 days
-                    'path' => '/',
-                    'httponly' => true,
-                    'samesite' => 'Lax'
-                ]);
+        if (self::$isStarting) {
+            return;
+        }
+
+        self::$isStarting = true;
+
+        try {
+            if (session_status() === PHP_SESSION_NONE) {
+                if (!headers_sent()) {
+                    $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                        || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https')
+                        || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443);
+
+                    @ini_set('session.use_strict_mode', '1');
+                    @ini_set('session.cookie_httponly', '1');
+
+                    session_set_cookie_params([
+                        'lifetime' => 86400 * 7, // 7 days
+                        'path' => '/',
+                        'domain' => '',
+                        'secure' => $isHttps,
+                        'httponly' => true,
+                        'samesite' => 'Lax'
+                    ]);
+                }
+                @session_start();
             }
-            @session_start();
+
+            $isLoggedIn = !empty($_SESSION['auth_user']['id']);
+
+            // Session Hijacking Protection: Bind session to User-Agent hash
+            if (isset($_SESSION['_user_agent'])) {
+                $currentAgent = hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
+                if (!hash_equals($_SESSION['_user_agent'], $currentAgent)) {
+                    unset($_SESSION['auth_user'], $_SESSION['_user_agent'], $_SESSION['_last_activity']);
+                    if (session_status() === PHP_SESSION_ACTIVE) {
+                        @session_regenerate_id(true);
+                    }
+                    return;
+                }
+            } elseif ($isLoggedIn) {
+                $_SESSION['_user_agent'] = hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
+            }
+
+            // Session-based Inactivity Locking: 4 hours (14400s) timeout for authenticated users
+            if ($isLoggedIn) {
+                $now = time();
+                $lastActivity = (int) ($_SESSION['_last_activity'] ?? $now);
+                if (($now - $lastActivity) > 14400) {
+                    unset($_SESSION['auth_user'], $_SESSION['_user_agent'], $_SESSION['_last_activity']);
+                    if (session_status() === PHP_SESSION_ACTIVE) {
+                        @session_regenerate_id(true);
+                    }
+                    $_SESSION['_flash_error'] = 'Your session has expired due to inactivity. Please log in again.';
+                    return;
+                }
+                $_SESSION['_last_activity'] = $now;
+            }
+        } finally {
+            self::$isStarting = false;
         }
     }
 
@@ -65,6 +117,13 @@ class Session
 
     public static function setAuthUser(array $user): void
     {
+        self::start();
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_regenerate_id(true);
+        }
+        $_SESSION['_user_agent'] = hash('sha256', (string) ($_SERVER['HTTP_USER_AGENT'] ?? 'none'));
+        $_SESSION['_last_activity'] = time();
+
         self::set('auth_user', [
             'id' => (int) $user['id'],
             'name' => $user['name'],
@@ -108,13 +167,18 @@ class Session
 
     public static function check(): bool
     {
-        return self::has('auth_user') && !empty(self::get('auth_user')['id']);
+        self::start();
+        return !empty($_SESSION['auth_user']['id']);
     }
 
     public static function logout(): void
     {
-        self::start();
-        unset($_SESSION['auth_user']);
-        session_regenerate_id(true);
+        if (session_status() === PHP_SESSION_NONE) {
+            self::start();
+        }
+        unset($_SESSION['auth_user'], $_SESSION['_user_agent'], $_SESSION['_last_activity']);
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            @session_regenerate_id(true);
+        }
     }
 }

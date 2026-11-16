@@ -2,8 +2,8 @@
     <!-- Document Header -->
     <div class="border-b-2 border-slate-900 pb-2.5 mb-3 flex justify-between items-start">
         <div>
-            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 uppercase">Daily Attendance Register &amp; Roll Call</h1>
-            <p class="text-xs text-slate-600 mt-0.5"><?= $e($teacher['school_name'] ?? 'Class Aid Suite') ?> • Official Attendance Records</p>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-slate-900 uppercase"><?= ucfirst($sessionType ?? 'Morning') ?> Attendance Register &amp; Roll Call</h1>
+            <p class="text-xs text-slate-600 mt-0.5"><?= $e($teacher['school_name'] ?? 'Class Aid Suite') ?> • <?= ucfirst($sessionType ?? 'Morning') ?> Session Attendance Record</p>
         </div>
         <div class="text-right text-xs">
             <div><strong>Generated:</strong> <?= date('F d, Y - H:i') ?></div>
@@ -19,9 +19,9 @@
             <span class="text-slate-600 block text-[11px]">Academic Year: <?= $e($class['academic_year']) ?></span>
         </div>
         <div>
-            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Attendance Date</span>
-            <span class="font-bold text-sm text-slate-900"><?= date('l, M d, Y', strtotime($date)) ?></span>
-            <span class="text-indigo-600 block text-[11px] font-mono"><?= $e($date) ?></span>
+            <span class="text-slate-500 uppercase block font-semibold text-[10px]">Session &amp; Date</span>
+            <span class="font-bold text-sm text-slate-900"><?= ucfirst($sessionType ?? 'Morning') ?> &bull; <?= date('M d, Y', strtotime($date)) ?></span>
+            <span class="text-indigo-600 block text-[11px] font-mono"><?= date('l', strtotime($date)) ?> (<?= $e($date) ?>)</span>
         </div>
         <div>
             <span class="text-slate-500 uppercase block font-semibold text-[10px]">Roll Summary</span>

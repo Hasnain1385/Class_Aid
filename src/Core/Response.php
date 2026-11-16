@@ -21,6 +21,9 @@ class Response
 
     public static function json(mixed $data, int $statusCode = 200): void
     {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         http_response_code($statusCode);
         header('Content-Type: application/json; charset=utf-8');
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -29,6 +32,9 @@ class Response
 
     public static function csv(string $filename, array $headers, array $rows): void
     {
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
         header('Content-Type: text/csv; charset=utf-8');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Pragma: no-cache');
@@ -38,9 +44,9 @@ class Response
         // Add UTF-8 BOM so Excel opens it with proper encoding
         fputs($output, "\xEF\xBB\xBF");
         
-        fputcsv($output, $headers);
+        fputcsv($output, $headers, ',', '"', '\\');
         foreach ($rows as $row) {
-            fputcsv($output, $row);
+            fputcsv($output, $row, ',', '"', '\\');
         }
         fclose($output);
         exit;

@@ -13,6 +13,13 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
+            <!-- Academic Rollover / Student Promotion Button -->
+            <a href="/classes/promotion"
+               class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 shadow-sm transition-all cursor-pointer" title="Promote students to next class while preserving historical records">
+                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                <span>Promote / Academic Rollover</span>
+            </a>
+
             <!-- Clean Mock / Demo Data Button -->
             <button type="button" 
                     onclick="document.getElementById('modal-clean-mock-data').classList.remove('hidden')"

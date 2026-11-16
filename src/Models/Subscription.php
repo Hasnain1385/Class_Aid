@@ -31,7 +31,7 @@ class Subscription
             'name' => 'Monthly Starter Plan',
             'cycle' => 'monthly',
             'days' => 30,
-            'price' => 9.99,
+            'price' => 14.99,
             'features' => [
                 'Unlimited Students & Classes',
                 '1-Tap Roll Call & Absenteeism Flags',
@@ -40,36 +40,6 @@ class Subscription
                 'Email & Web Reminders',
             ],
             'badge' => 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-        ],
-        'quarterly' => [
-            'code' => 'quarterly',
-            'name' => 'Quarterly Educator Plan',
-            'cycle' => 'quarterly',
-            'days' => 90,
-            'price' => 26.99,
-            'discount' => 'Save 10%',
-            'features' => [
-                'Everything in Monthly Plan',
-                'Term Exam Weighting & Analytics',
-                'Institutional Audit Sign-off Sheets',
-                'Priority Feature Upgrades',
-            ],
-            'badge' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-        ],
-        'semi_annual' => [
-            'code' => 'semi_annual',
-            'name' => 'Semi-Annual Pro Plan',
-            'cycle' => 'semi_annual',
-            'days' => 180,
-            'price' => 49.99,
-            'discount' => 'Save 16%',
-            'features' => [
-                'Everything in Quarterly Plan',
-                'Semester Exam & Attendance Trends',
-                'Multi-Class Bulk CSV Data Exports',
-                'Dedicated Support Desk',
-            ],
-            'badge' => 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
         ],
         'annual' => [
             'code' => 'annual',
@@ -107,6 +77,10 @@ class Subscription
 
     public static function getPlan(string $code): ?array
     {
+        $code = strtolower(trim($code));
+        if ($code === 'anually' || $code === 'annually') {
+            $code = 'annual';
+        }
         $plan = Plan::findByCode($code);
         if ($plan) {
             return $plan;
@@ -434,7 +408,7 @@ class Subscription
         $subs = $pdo->query("SELECT plan_code, price FROM subscriptions WHERE status IN ('active', 'lifetime')")->fetchAll();
         $mrr = 0.0;
         $totalRevenue = 0.0;
-        $planBreakdown = ['monthly' => 0, 'quarterly' => 0, 'semi_annual' => 0, 'annual' => 0, 'lifetime' => 0];
+        $planBreakdown = ['monthly' => 0, 'annual' => 0, 'lifetime' => 0];
 
         foreach ($subs as $s) {
             $code = $s['plan_code'];
@@ -448,9 +422,7 @@ class Subscription
             // Normalize to monthly equivalent
             $mrr += match ($code) {
                 'monthly' => $price,
-                'quarterly' => $price / 3,
-                'semi_annual' => $price / 6,
-                'annual' => $price / 12,
+                'annual', 'annually', 'anually' => $price / 12,
                 'lifetime' => $price / 24, // amortized over 2 years
                 default => 0.0,
             };

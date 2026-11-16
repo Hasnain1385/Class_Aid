@@ -60,23 +60,48 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Host</label>
-                        <input type="text" name="mysql_host" value="127.0.0.1" class="w-full px-3 py-2 text-xs rounded-lg glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="server" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mysql_host" value="127.0.0.1" placeholder="127.0.0.1">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Port</label>
-                        <input type="text" name="mysql_port" value="3306" class="w-full px-3 py-2 text-xs rounded-lg glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="hash" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mysql_port" value="3306" placeholder="3306">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Database Name</label>
-                        <input type="text" name="mysql_name" value="class_aid" class="w-full px-3 py-2 text-xs rounded-lg glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="database" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mysql_name" value="class_aid" placeholder="class_aid">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Username (non-root supported)</label>
-                        <input type="text" name="mysql_user" value="root" class="w-full px-3 py-2 text-xs rounded-lg glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mysql_user" value="root" placeholder="root">
+                        </div>
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-                        <input type="password" name="mysql_password" placeholder="Database password (leave blank if none)" class="w-full px-3 py-2 text-xs rounded-lg glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="key" class="w-4 h-4"></i>
+                            </div>
+                            <input type="password" name="mysql_password" placeholder="Database password (leave blank if none)">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -98,23 +123,51 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Super Admin Name *</label>
-                        <input type="text" name="admin_name" placeholder="e.g. Mirza Hasnain Baig" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="admin_name" placeholder="e.g. Mirza Hasnain Baig" required>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">School / Organization Name</label>
-                        <input type="text" name="school_name" placeholder="e.g. Oakridge Academy & SaaS Hub" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="building" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="school_name" placeholder="e.g. Oakridge Academy & SaaS Hub">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Email Address *</label>
-                        <input type="email" name="email" placeholder="admin@domain.com" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </div>
+                            <input type="email" name="email" placeholder="admin@domain.com" required>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Master Password *</label>
-                        <input type="password" name="password" minlength="6" placeholder="Choose a secure password" required class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </div>
+                            <input type="password" id="install-password" name="password" minlength="6" placeholder="Choose a secure password" required>
+                            <button type="button" onclick="event.stopPropagation(); togglePasswordVisibility('install-password', this)" class="input-action-btn" title="Toggle password visibility">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">WhatsApp / EasyPaisa Mobile Number</label>
-                        <input type="text" name="phone" placeholder="e.g. 0300-1234567" class="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl glass-input font-mono">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="phone" placeholder="e.g. 0300-1234567">
+                        </div>
                         <span class="text-[10px] text-gray-400 mt-1 block">Used as the default EasyPaisa receiving account for student subscriptions.</span>
                     </div>
                 </div>
@@ -137,19 +190,42 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Host</label>
-                        <input type="text" name="mail_host" placeholder="smtp.gmail.com" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="cloud" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mail_host" placeholder="smtp.gmail.com">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Port</label>
-                        <input type="number" name="mail_port" value="587" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="hash" class="w-4 h-4"></i>
+                            </div>
+                            <input type="number" name="mail_port" value="587" placeholder="587">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Username</label>
-                        <input type="text" name="mail_username" placeholder="your_email@gmail.com" class="w-full px-3 py-2 text-xs rounded-xl glass-input font-mono">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" name="mail_username" placeholder="your_email@gmail.com">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">SMTP Password / App Password</label>
-                        <input type="password" name="mail_password" placeholder="••••••••••••" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                        <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="key" class="w-4 h-4"></i>
+                            </div>
+                            <input type="password" id="install-mail-password" name="mail_password" placeholder="••••••••••••">
+                            <button type="button" onclick="event.stopPropagation(); togglePasswordVisibility('install-mail-password', this)" class="input-action-btn" title="Toggle password visibility">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

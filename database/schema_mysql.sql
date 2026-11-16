@@ -86,12 +86,14 @@ CREATE TABLE IF NOT EXISTS attendance (
     student_id INT NOT NULL,
     class_id INT NOT NULL,
     attendance_date DATE NOT NULL,
+    session_type VARCHAR(20) DEFAULT 'morning',
     status VARCHAR(10) NOT NULL,
     remarks VARCHAR(255) NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uq_student_date (student_id, attendance_date),
+    UNIQUE KEY uq_student_date_session (student_id, attendance_date, session_type),
     INDEX idx_attendance_date (attendance_date),
     INDEX idx_attendance_class (class_id),
+    INDEX idx_attendance_session (session_type),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

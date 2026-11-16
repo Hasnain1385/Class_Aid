@@ -8,6 +8,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
+use App\Core\RateLimiter;
 use App\Models\User;
 use App\Models\Subscription;
 use App\Models\Reminder;
@@ -24,20 +25,44 @@ class AuthController
         $email = strtolower(trim((string) $request->input('email')));
         $password = (string) $request->input('password');
 
+        $ip = $request->ip();
+        $rateLimitKey = 'login:' . $ip . ':' . $email;
+
+        // Brute-force protection: max 5 failed attempts per 5-minute window
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            Session::flash('error', "Too many failed login attempts. Please wait {$seconds} seconds before trying again.");
+            Response::redirect('/login');
+            return;
+        }
+
         if (empty($email) || empty($password)) {
             Session::flash('error', 'Please enter both email and password.');
             Response::redirect('/login');
+            return;
         }
 
         $user = User::findByEmail($email);
         if (!$user || !User::verifyPassword($password, $user['password_hash'])) {
-            Session::flash('error', 'Invalid email address or password.');
+            RateLimiter::hit($rateLimitKey, 300);
+            $attempts = RateLimiter::attempts($rateLimitKey);
+            $remaining = max(0, 5 - $attempts);
+            $msg = 'Invalid email address or password.';
+            if ($remaining > 0 && $remaining <= 2) {
+                $msg .= " ({$remaining} attempt" . ($remaining === 1 ? '' : 's') . " remaining before temporary lock)";
+            }
+            Session::flash('error', $msg);
             Response::redirect('/login');
+            return;
         }
+
+        // Reset rate limiter on successful authentication
+        RateLimiter::clear($rateLimitKey);
 
         if (($user['status'] ?? 'active') === 'suspended') {
             Session::flash('error', 'Your teacher account has been suspended by the administrator. Please contact support.');
             Response::redirect('/login');
+            return;
         }
 
         Session::setAuthUser($user);
@@ -45,6 +70,7 @@ class AuthController
         if (($user['role'] ?? '') === 'super_admin') {
             Session::flash('success', "Welcome back, Administrator {$user['name']}!");
             Response::redirect('/admin');
+            return;
         }
 
         Session::flash('success', "Welcome back, {$user['name']}!");
@@ -240,12 +266,25 @@ class AuthController
 
     public function sendResetLink(Request $request): void
     {
+        $ip = $request->ip();
+        $rateLimitKey = 'password_reset:' . $ip;
+
+        // Throttling: max 3 requests per 5-minute decay window per IP
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 3)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            Session::flash('error', "Too many password reset requests. Please wait {$seconds} seconds before requesting another link.");
+            Response::redirect('/forgot-password');
+            return;
+        }
+
         $email = strtolower(trim((string) $request->input('email', '')));
         if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
             Session::flash('error', 'Please enter a valid email address.');
             Response::redirect('/forgot-password');
             return;
         }
+
+        RateLimiter::hit($rateLimitKey, 300);
 
         $user = User::findByEmail($email);
         if ($user) {

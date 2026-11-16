@@ -37,9 +37,9 @@ class ImportParser
             } elseif (str_contains($line, "\t")) {
                 $cols = array_map('trim', explode("\t", $line));
             } elseif (str_contains($line, ';')) {
-                $cols = array_map('trim', str_getcsv($line, ';'));
+                $cols = array_map('trim', str_getcsv($line, ';', '"', '\\'));
             } elseif (str_contains($line, ',')) {
-                $cols = array_map('trim', str_getcsv($line, ','));
+                $cols = array_map('trim', str_getcsv($line, ',', '"', '\\'));
             } else {
                 // Multi-space separated (common in OCR tables or formatted text)
                 $cols = array_values(array_filter(preg_split('/\s{2,}|\t/', $line), fn($c) => trim($c) !== ''));

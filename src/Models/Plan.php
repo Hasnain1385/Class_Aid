@@ -44,40 +44,6 @@ class Plan
             'badge' => 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
             'sort_order' => 2,
         ],
-        'quarterly' => [
-            'code' => 'quarterly',
-            'name' => 'Quarterly Academic Plan',
-            'cycle' => 'quarterly',
-            'days' => 90,
-            'price' => 39.99,
-            'discount' => 'Save 10%',
-            'popular' => 0,
-            'features' => [
-                'Everything in Monthly Plan',
-                'Term Exam Weighting & Analytics',
-                'Institutional Audit Sign-off Sheets',
-                'Priority Feature Upgrades',
-            ],
-            'badge' => 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-            'sort_order' => 3,
-        ],
-        'semi_annual' => [
-            'code' => 'semi_annual',
-            'name' => 'Semi-Annual Pro Plan',
-            'cycle' => 'semi_annual',
-            'days' => 180,
-            'price' => 49.99,
-            'discount' => 'Save 16%',
-            'popular' => 0,
-            'features' => [
-                'Everything in Quarterly Plan',
-                'Semester Exam & Attendance Trends',
-                'Multi-Class Bulk CSV Data Exports',
-                'Dedicated Support Desk',
-            ],
-            'badge' => 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-            'sort_order' => 4,
-        ],
         'annual' => [
             'code' => 'annual',
             'name' => 'Annual Professional Plan',
@@ -94,7 +60,7 @@ class Plan
                 'School Head Sign-off Audit Mode',
             ],
             'badge' => 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
-            'sort_order' => 5,
+            'sort_order' => 3,
         ],
         'lifetime' => [
             'code' => 'lifetime',
@@ -111,7 +77,7 @@ class Plan
                 'Institutional White-Label Ready',
             ],
             'badge' => 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
-            'sort_order' => 6,
+            'sort_order' => 4,
         ],
     ];
 
@@ -175,6 +141,13 @@ class Plan
             foreach (self::DEFAULT_PLANS as $p) {
                 self::create($p);
             }
+        } else {
+            // Ensure only the 4 offered tiers exist (trial, monthly, annual, lifetime)
+            $pdo->exec("DELETE FROM plans WHERE code NOT IN ('trial', 'monthly', 'annual', 'lifetime')");
+            $pdo->exec("UPDATE plans SET sort_order = 1 WHERE code = 'trial'");
+            $pdo->exec("UPDATE plans SET sort_order = 2 WHERE code = 'monthly'");
+            $pdo->exec("UPDATE plans SET sort_order = 3 WHERE code = 'annual'");
+            $pdo->exec("UPDATE plans SET sort_order = 4 WHERE code = 'lifetime'");
         }
         self::$seeding = false;
     }
@@ -236,6 +209,10 @@ class Plan
     public static function findByCode(string $code): ?array
     {
         self::ensureTableAndSeed();
+        $code = strtolower(trim($code));
+        if ($code === 'anually' || $code === 'annually') {
+            $code = 'annual';
+        }
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare("SELECT * FROM plans WHERE code = :code LIMIT 1");
         $stmt->execute(['code' => $code]);
@@ -269,11 +246,11 @@ class Plan
             $days = null;
         } elseif ($days === null) {
             $cycleDays = [
-                'monthly' => 30,
-                'quarterly' => 90,
-                'semi_annual' => 180,
-                'annual' => 365,
                 'trial' => 14,
+                'monthly' => 30,
+                'annual' => 365,
+                'annually' => 365,
+                'anually' => 365,
             ];
             $days = $cycleDays[$data['cycle']] ?? 30;
         }

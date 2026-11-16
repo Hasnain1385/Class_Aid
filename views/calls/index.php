@@ -33,80 +33,105 @@
         </div>
     </div>
 
-    <!-- Filter & Search Panel -->
-    <div class="glass-card p-4">
-        <form method="GET" action="/calls" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            
-            <!-- Class Filter -->
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Class</label>
-                <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
-                    <div class="input-icon-box">
-                        <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+    <?php 
+        $hasActiveFilters = !empty($filters['class_id']) || !empty($filters['category']) || !empty($filters['date_from']) || !empty($filters['date_to']);
+    ?>
+
+    <!-- Filter & Search Panel (Collapsible on Mobile) -->
+    <div class="glass-card overflow-hidden">
+        <!-- Mobile Accordion Trigger (Hidden on Desktop) -->
+        <button type="button"
+                onclick="toggleMobileFilters('calls-filter-body', 'calls-filter-chevron')"
+                class="sm:hidden w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+            <div class="flex items-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i>
+                <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Call Log Filters</span>
+                <?php if ($hasActiveFilters): ?>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        Active
+                    </span>
+                <?php endif; ?>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="text-[11px] font-medium"><?= $hasActiveFilters ? 'Tap to edit' : 'Tap to expand' ?></span>
+                <i id="calls-filter-chevron" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 <?= $hasActiveFilters ? 'rotate-180' : '' ?>"></i>
+            </div>
+        </button>
+
+        <div id="calls-filter-body" class="<?= $hasActiveFilters ? 'block' : 'hidden' ?> sm:block p-4 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+            <form method="GET" action="/calls" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                
+                <!-- Class Filter -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Class</label>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="graduation-cap" class="w-4 h-4"></i>
+                        </div>
+                        <select name="class_id">
+                            <option value="">All Classes</option>
+                            <?php foreach ($classes as $c): ?>
+                                <option value="<?= $c['id'] ?>" <?= ($filters['class_id'] == $c['id']) ? 'selected' : '' ?>>
+                                    <?= $e($c['name']) ?> - <?= $e($c['section']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <select name="class_id">
-                        <option value="">All Classes</option>
-                        <?php foreach ($classes as $c): ?>
-                            <option value="<?= $c['id'] ?>" <?= ($filters['class_id'] == $c['id']) ? 'selected' : '' ?>>
-                                <?= $e($c['name']) ?> - <?= $e($c['section']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
                 </div>
-            </div>
 
-            <!-- Category Filter -->
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
-                <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
-                    <div class="input-icon-box">
-                        <i data-lucide="folder" class="w-4 h-4"></i>
+                <!-- Category Filter -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
+                    <div class="glass-input-group" onclick="this.querySelector('select')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="folder" class="w-4 h-4"></i>
+                        </div>
+                        <select name="category">
+                            <option value="">All Categories</option>
+                            <?php foreach ($categories as $catKey => $catData): ?>
+                                <option value="<?= $catKey ?>" <?= (($filters['category'] ?? '') === $catKey) ? 'selected' : '' ?>>
+                                    <?= $e(is_array($catData) ? ($catData['label'] ?? $catKey) : $catData) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                    <select name="category">
-                        <option value="">All Categories</option>
-                        <?php foreach ($categories as $catKey => $catData): ?>
-                            <option value="<?= $catKey ?>" <?= (($filters['category'] ?? '') === $catKey) ? 'selected' : '' ?>>
-                                <?= $e(is_array($catData) ? ($catData['label'] ?? $catKey) : $catData) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
                 </div>
-            </div>
 
-            <!-- Date From -->
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">From Date</label>
-                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
-                    <div class="input-icon-box">
-                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                <!-- Date From -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">From Date</label>
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="date_from" value="<?= $e($filters['date_from'] ?? '') ?>" class="tabular-nums">
                     </div>
-                    <input type="date" name="date_from" value="<?= $e($filters['date_from'] ?? '') ?>" class="tabular-nums">
                 </div>
-            </div>
 
-            <!-- Date To -->
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">To Date</label>
-                <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
-                    <div class="input-icon-box">
-                        <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                <!-- Date To -->
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">To Date</label>
+                    <div class="glass-input-group" onclick="this.querySelector('input')?.focus()">
+                        <div class="input-icon-box">
+                            <i data-lucide="calendar-check" class="w-4 h-4"></i>
+                        </div>
+                        <input type="date" name="date_to" value="<?= $e($filters['date_to'] ?? '') ?>" class="tabular-nums">
                     </div>
-                    <input type="date" name="date_to" value="<?= $e($filters['date_to'] ?? '') ?>" class="tabular-nums">
                 </div>
-            </div>
 
-            <!-- Action buttons -->
-            <div class="flex items-end gap-2 pb-0.5">
-                <button type="submit" class="flex-1 h-11 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm">
-                    <i data-lucide="filter" class="w-3.5 h-3.5"></i>
-                    <span>Filter</span>
-                </button>
-                <a href="/calls" class="h-11 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center">
-                    Reset
-                </a>
-            </div>
+                <!-- Action buttons -->
+                <div class="flex items-end gap-2 pb-0.5">
+                    <button type="submit" class="flex-1 h-11 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-sm">
+                        <i data-lucide="filter" class="w-3.5 h-3.5"></i>
+                        <span>Filter</span>
+                    </button>
+                    <a href="/calls" class="h-11 px-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                        Reset
+                    </a>
+                </div>
 
-        </form>
+            </form>
+        </div>
     </div>
 
     <!-- Communication Cards List -->
@@ -205,3 +230,19 @@
     <?php endif; ?>
 
 </div>
+
+<script>
+    function toggleMobileFilters(bodyId, chevronId) {
+        const body = document.getElementById(bodyId);
+        const chevron = document.getElementById(chevronId);
+        if (!body) return;
+        const isHidden = body.classList.contains('hidden');
+        if (isHidden) {
+            body.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            body.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+</script>

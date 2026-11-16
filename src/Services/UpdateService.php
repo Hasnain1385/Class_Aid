@@ -385,6 +385,41 @@ class UpdateService
             $targetFile = $updatesDir . '/update_' . date('Ymd_His') . '.zip';
         }
 
+        // Direct stream to disk to keep RAM usage near 0 MB during large archive downloads
+        if (self::$mockHttpClient === null && function_exists('curl_init')) {
+            $fp = @fopen($targetFile, 'wb');
+            if (!$fp) {
+                throw new RuntimeException("Failed to open update archive target [{$targetFile}] for writing.");
+            }
+
+            $ch = curl_init($downloadUrl);
+            curl_setopt($ch, CURLOPT_FILE, $fp);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+
+            $headers = ['User-Agent: ClassAid-Updater/1.0', 'Accept: application/octet-stream'];
+            $token = (string) Config::get('GITHUB_TOKEN', '');
+            if (trim($token) !== '') {
+                $headers[] = 'Authorization: Bearer ' . trim($token);
+            }
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+            $success = curl_exec($ch);
+            $status = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $err = curl_error($ch);
+            curl_close($ch);
+            fclose($fp);
+
+            if (!$success || $status < 200 || $status >= 300 || filesize($targetFile) === 0) {
+                @unlink($targetFile);
+                throw new RuntimeException("Failed to stream download update archive from GitHub (HTTP {$status}: {$err}).");
+            }
+
+            return $targetFile;
+        }
+
         $res = self::httpGet($downloadUrl, ['Accept' => 'application/octet-stream']);
         if ($res['status'] !== 200 || empty($res['body'])) {
             throw new RuntimeException("Failed to download update archive from GitHub (HTTP {$res['status']}).");

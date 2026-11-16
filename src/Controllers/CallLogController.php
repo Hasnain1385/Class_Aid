@@ -192,6 +192,7 @@ class CallLogController
             'student' => $student,
             'calls' => $calls,
             'teacher' => $user,
+            'backUrl' => '/calls/student/' . $sId,
         ], 'print');
     }
 
@@ -223,6 +224,7 @@ class CallLogController
             'teacher' => $user,
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
+            'backUrl' => '/calls?class_id=' . $cId,
         ], 'print');
     }
 
@@ -252,6 +254,7 @@ class CallLogController
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'category' => $category,
+            'backUrl' => '/calls',
         ], 'print');
     }
 }

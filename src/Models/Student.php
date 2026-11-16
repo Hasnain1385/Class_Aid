@@ -255,4 +255,177 @@ class Student
             'consecutive_absences' => self::getConsecutiveAbsences($studentId),
         ];
     }
+
+    public static function getBatchConsecutiveAbsences(array $studentIds): array
+    {
+        if (empty($studentIds)) {
+            return [];
+        }
+
+        $studentIds = array_values(array_unique(array_filter(array_map('intval', $studentIds))));
+        if (empty($studentIds)) {
+            return [];
+        }
+
+        $pdo = Database::getConnection();
+        $placeholders = implode(',', $studentIds);
+
+        $sql = "
+            SELECT student_id, attendance_date, status
+            FROM attendance
+            WHERE student_id IN ({$placeholders})
+            ORDER BY student_id ASC, attendance_date DESC
+        ";
+        $stmt = $pdo->query($sql);
+        $consecutiveMap = array_fill_keys($studentIds, 0);
+
+        if ($stmt) {
+            $currentId = null;
+            $count = 0;
+            $isBroken = false;
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $sId = (int) $row['student_id'];
+                if ($sId !== $currentId) {
+                    $currentId = $sId;
+                    $count = 0;
+                    $isBroken = false;
+                }
+                if (!$isBroken) {
+                    if ($row['status'] === 'A') {
+                        $count++;
+                        $consecutiveMap[$sId] = $count;
+                    } else {
+                        $isBroken = true;
+                    }
+                }
+            }
+        }
+
+        return $consecutiveMap;
+    }
+
+    public static function getBatchAttendanceStats(array $studentIds): array
+    {
+        if (empty($studentIds)) {
+            return [];
+        }
+
+        $studentIds = array_values(array_unique(array_filter(array_map('intval', $studentIds))));
+        if (empty($studentIds)) {
+            return [];
+        }
+
+        $pdo = Database::getConnection();
+        $placeholders = implode(',', $studentIds);
+
+        $sql = "
+            SELECT 
+                student_id,
+                COUNT(*) as total_days,
+                SUM(CASE WHEN status = 'P' THEN 1 ELSE 0 END) as present_days,
+                SUM(CASE WHEN status = 'A' THEN 1 ELSE 0 END) as absent_days,
+                SUM(CASE WHEN status = 'L' THEN 1 ELSE 0 END) as late_days,
+                SUM(CASE WHEN status = 'E' THEN 1 ELSE 0 END) as excused_days
+            FROM attendance 
+            WHERE student_id IN ({$placeholders})
+            GROUP BY student_id
+        ";
+        $stmt = $pdo->query($sql);
+        $rows = $stmt ? $stmt->fetchAll(PDO::FETCH_ASSOC) : [];
+        $statsByStudent = [];
+        foreach ($rows as $r) {
+            $statsByStudent[(int) $r['student_id']] = $r;
+        }
+
+        $consecutiveMap = self::getBatchConsecutiveAbsences($studentIds);
+
+        $results = [];
+        foreach ($studentIds as $id) {
+            $stats = $statsByStudent[$id] ?? [];
+            $total = (int) ($stats['total_days'] ?? 0);
+            $present = (int) ($stats['present_days'] ?? 0);
+            $late = (int) ($stats['late_days'] ?? 0);
+            $percentage = ($total > 0) ? round((($present + ($late * 0.5)) / $total) * 100, 1) : 100.0;
+
+            $results[$id] = [
+                'total' => $total,
+                'total_days' => $total,
+                'present' => $present,
+                'present_days' => $present,
+                'absent' => (int) ($stats['absent_days'] ?? 0),
+                'absent_days' => (int) ($stats['absent_days'] ?? 0),
+                'late' => $late,
+                'late_days' => $late,
+                'excused' => (int) ($stats['excused_days'] ?? 0),
+                'excused_days' => (int) ($stats['excused_days'] ?? 0),
+                'percentage' => $percentage,
+                'rate' => $percentage,
+                'consecutive_absences' => $consecutiveMap[$id] ?? 0,
+            ];
+        }
+
+        return $results;
+    }
+
+    /**
+     * Atomically promotes or transfers students from source class to destination class
+     * preserving all previous attendance, marks, and parent call records under their original class IDs.
+     */
+    public static function promoteStudents(array $studentIds, int $sourceClassId, int $destClassId, int $teacherId): int
+    {
+        if (empty($studentIds) || $sourceClassId === $destClassId) {
+            return 0;
+        }
+
+        $pdo = Database::getConnection();
+        $sourceClass = SchoolClass::findById($sourceClassId);
+        $destClass = SchoolClass::findById($destClassId);
+
+        if (!$sourceClass || !$destClass) {
+            throw new \InvalidArgumentException('Source or destination class does not exist.');
+        }
+
+        $pdo->beginTransaction();
+        try {
+            $inIds = implode(',', array_map('intval', $studentIds));
+            $stmt = $pdo->prepare("
+                UPDATE students
+                SET class_id = :dest_class_id
+                WHERE id IN ({$inIds}) AND class_id = :source_class_id
+            ");
+            $stmt->execute([
+                'dest_class_id' => $destClassId,
+                'source_class_id' => $sourceClassId,
+            ]);
+            $count = $stmt->rowCount();
+
+            // Record audit trail in parent_call_logs for historical transparency
+            $logStmt = $pdo->prepare("
+                INSERT INTO parent_call_logs (
+                    student_id, teacher_id, contact_person_name, relationship, phone_dialed,
+                    call_timestamp, call_type, call_category, discussion_summary, parent_response,
+                    follow_up_required, status, created_at
+                )
+                SELECT 
+                    id, :teacher_id, primary_guardian_name, primary_guardian_relation, primary_phone,
+                    CURRENT_TIMESTAMP, 'System Notice', 'Academic', :summary, 'Institutional record transition registered.',
+                    0, 'Resolved', CURRENT_TIMESTAMP
+                FROM students
+                WHERE id IN ({$inIds})
+            ");
+
+            $summary = "Academic Rollover: Promoted from {$sourceClass['name']} ({$sourceClass['section']}) to {$destClass['name']} ({$destClass['section']}). Historical records intact.";
+
+            $logStmt->execute([
+                'teacher_id' => $teacherId,
+                'summary' => $summary,
+            ]);
+
+            $pdo->commit();
+            return $count;
+        } catch (\Exception $e) {
+            $pdo->rollBack();
+            throw $e;
+        }
+    }
 }

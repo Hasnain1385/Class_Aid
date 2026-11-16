@@ -688,7 +688,7 @@ class AdminController
     {
         $planId = (int) $id;
         $plan = Plan::findById($planId);
-        if ($plan && in_array($plan['code'], ['trial', 'monthly', 'annual'], true)) {
+        if ($plan && in_array($plan['code'], ['trial', 'monthly', 'annual', 'lifetime'], true)) {
             Session::flash('error', 'Core subscription plans cannot be deleted. You can deactivate them instead.');
             Response::redirect('/admin/plans');
             return;

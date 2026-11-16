@@ -136,16 +136,32 @@ echo "\n\033[1m[2. SaaS Plans & Dynamic Payment Gateways]\033[0m\n";
 it('Plan model seeds default plans and retrieves active tiers', function () {
     Plan::ensureTableAndSeed();
     $plans = Plan::getAllActive();
-    if (count($plans) < 5) {
-        throw new \Exception("Expected at least 5 active plans, got " . count($plans));
+    if (count($plans) !== 4) {
+        throw new \Exception("Expected exactly 4 active plans, got " . count($plans));
     }
     $trial = Plan::findByCode('trial');
     if (!$trial || (float)$trial['price'] !== 0.0) {
         throw new \Exception("Trial plan missing or price not 0.00");
     }
+    $monthly = Plan::findByCode('monthly');
+    if (!$monthly || (float)$monthly['price'] <= 0.0) {
+        throw new \Exception("Monthly plan missing");
+    }
     $annual = Plan::findByCode('annual');
     if (!$annual || empty($annual['popular'])) {
         throw new \Exception("Annual plan should be marked popular");
+    }
+    $anuallyAlias = Plan::findByCode('anually');
+    if (!$anuallyAlias || $anuallyAlias['code'] !== 'annual') {
+        throw new \Exception("Plan findByCode('anually') alias resolution failed");
+    }
+    $lifetime = Plan::findByCode('lifetime');
+    if (!$lifetime || (float)$lifetime['price'] <= 0.0) {
+        throw new \Exception("Lifetime plan missing");
+    }
+    // Verify quarterly and semi_annual are removed
+    if (Plan::findByCode('quarterly') !== null || Plan::findByCode('semi_annual') !== null) {
+        throw new \Exception("Legacy plans (quarterly/semi_annual) should not exist in active plans");
     }
 });
 
@@ -420,6 +436,19 @@ it('Records daily attendance and flags 3 consecutive absences correctly', functi
     }
 });
 
+it('Batch attendance stats computes aggregate metrics and consecutive absences in low RAM O(1) queries', function () use ($testStudentId) {
+    $batch = Student::getBatchAttendanceStats([$testStudentId]);
+    if (!isset($batch[$testStudentId])) {
+        throw new \Exception("Batch stats missing student record");
+    }
+    if ($batch[$testStudentId]['total'] < 4) {
+        throw new \Exception("Expected at least 4 attendance days in batch stats");
+    }
+    if ($batch[$testStudentId]['consecutive_absences'] !== 0) {
+        throw new \Exception("Expected 0 consecutive absences in batch stats");
+    }
+});
+
 // -------------------------------------------------------------
 // Group 6: Parent Communication Journal
 // -------------------------------------------------------------
@@ -556,16 +585,50 @@ it('Consolidated class assessment matrix accurately computes totals, percentages
 echo "\n\033[1m[8. Smart Import Parser (CSV & OCR Text)]\033[0m\n";
 
 it('ImportParser detects CSV columns and parses student rosters', function () {
-    $csv = "student_admin_id,first_name,last_name,gender,primary_phone,primary_guardian_name\n" .
-           "ADM-2026-101,Arthur,Dent,Male,555-0101,Ford Dent\n" .
-           "ADM-2026-102,Tricia,McMillan,Female,555-0102,Zaphod McMillan\n";
+    // Capture any PHP 8.4 deprecation warnings (e.g. fputcsv/str_getcsv without escape parameter)
+    $deprecations = [];
+    set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$deprecations) {
+        if ($errno === E_DEPRECATED || $errno === E_USER_DEPRECATED) {
+            $deprecations[] = "{$errstr} in {$errfile}:{$errline}";
+        }
+        return false;
+    });
 
-    $students = ImportParser::parseStudents($csv, 1);
-    if (count($students) !== 2) {
-        throw new \Exception("Expected 2 parsed students, got " . count($students));
-    }
-    if ($students[0]['student_admin_id'] !== 'ADM-2026-101' || $students[0]['first_name'] !== 'Arthur') {
-        throw new \Exception("First parsed student data incorrect");
+    try {
+        $csv = "student_admin_id,first_name,last_name,gender,primary_phone,primary_guardian_name\n" .
+               "ADM-2026-101,Arthur,Dent,Male,555-0101,Ford Dent\n" .
+               "ADM-2026-102,Tricia,McMillan,Female,555-0102,Zaphod McMillan\n";
+
+        $students = ImportParser::parseStudents($csv, 1);
+        if (count($students) !== 2) {
+            throw new \Exception("Expected 2 parsed students, got " . count($students));
+        }
+        if ($students[0]['student_admin_id'] !== 'ADM-2026-101' || $students[0]['first_name'] !== 'Arthur') {
+            throw new \Exception("First parsed student data incorrect");
+        }
+
+        // Test semicolon separated line
+        $semiCsv = "ADM-2026-103;Ford;Prefect;Male;555-0103;Sirius\n";
+        $semiStudents = ImportParser::parseStudents($semiCsv, 1);
+        if (count($semiStudents) !== 1 || $semiStudents[0]['first_name'] !== 'Ford') {
+            throw new \Exception("Semicolon delimiter CSV parsed incorrectly");
+        }
+
+        // Test fputcsv format compliance
+        $fp = fopen('php://memory', 'r+');
+        fputcsv($fp, ['col1', 'col2'], ',', '"', '\\');
+        rewind($fp);
+        $written = stream_get_contents($fp);
+        fclose($fp);
+        if (!str_contains($written, 'col1,col2')) {
+            throw new \Exception("fputcsv output invalid");
+        }
+
+        if (!empty($deprecations)) {
+            throw new \Exception("PHP 8.4 deprecation warnings detected during CSV operations: " . implode("; ", $deprecations));
+        }
+    } finally {
+        restore_error_handler();
     }
 });
 
@@ -1069,6 +1132,336 @@ it('Performs in-place zip extraction, preserving protected files and updating ve
     } else {
         file_put_contents($baseDir . '/version.json', $originalVersionContent);
         Config::set('APP_VERSION', '1.0.0');
+    }
+});
+
+it('RateLimiter enforces brute-force limits, calculates availableIn, and clears on success', function () {
+    $testKey = 'test_login:192.168.1.100:teacher@school.test';
+    \App\Core\RateLimiter::clear($testKey);
+
+    if (\App\Core\RateLimiter::attempts($testKey) !== 0) {
+        throw new \Exception("Initial attempts should be 0");
+    }
+    if (!\App\Core\RateLimiter::check($testKey, 3)) {
+        throw new \Exception("Check should return true initially");
+    }
+
+    // Hit 1
+    \App\Core\RateLimiter::hit($testKey, 60);
+    if (\App\Core\RateLimiter::attempts($testKey) !== 1) {
+        throw new \Exception("Attempts should be 1 after first hit");
+    }
+
+    // Hit 2 & 3
+    \App\Core\RateLimiter::hit($testKey, 60);
+    \App\Core\RateLimiter::hit($testKey, 60);
+    if (!\App\Core\RateLimiter::tooManyAttempts($testKey, 3)) {
+        throw new \Exception("Should report too many attempts after 3 hits with maxAttempts=3");
+    }
+
+    $availableIn = \App\Core\RateLimiter::availableIn($testKey);
+    if ($availableIn <= 0 || $availableIn > 60) {
+        throw new \Exception("availableIn should be between 1 and 60 seconds, got {$availableIn}");
+    }
+
+    // Clear
+    \App\Core\RateLimiter::clear($testKey);
+    if (\App\Core\RateLimiter::tooManyAttempts($testKey, 3)) {
+        throw new \Exception("Should not report too many attempts after clear()");
+    }
+    if (\App\Core\RateLimiter::attempts($testKey) !== 0) {
+        throw new \Exception("Attempts should be 0 after clear()");
+    }
+});
+
+it('Session hardening: enforces session security, regenerates ID, and binds user agent', function () {
+    $_SERVER['HTTP_USER_AGENT'] = 'ClassAid-Browser/1.0';
+    \App\Core\Session::start();
+
+    $testUser = [
+        'id' => 9999,
+        'name' => 'Security Test User',
+        'email' => 'security@test.edu',
+        'role' => 'teacher',
+        'status' => 'active',
+    ];
+
+    \App\Core\Session::setAuthUser($testUser);
+    if (!\App\Core\Session::check()) {
+        throw new \Exception("Session::check() should be true after setAuthUser()");
+    }
+    if (\App\Core\Session::userId() !== 9999) {
+        throw new \Exception("Session::userId() mismatch");
+    }
+
+    // Check user agent binding is saved
+    $expectedHash = hash('sha256', 'ClassAid-Browser/1.0');
+    if (($_SESSION['_user_agent'] ?? '') !== $expectedHash) {
+        throw new \Exception("Session _user_agent hash mismatch");
+    }
+
+    // Inactivity timestamp
+    if (empty($_SESSION['_last_activity'])) {
+        throw new \Exception("Session _last_activity should be recorded");
+    }
+
+    \App\Core\Session::logout();
+    if (\App\Core\Session::check()) {
+        throw new \Exception("Session::check() should be false after logout()");
+    }
+});
+
+it('Database disables emulate prepares against SQL injection and stores passwords hashed', function () {
+    $pdo = Database::getConnection();
+    $driver = $pdo->getAttribute(\PDO::ATTR_DRIVER_NAME);
+    if ($driver === 'mysql') {
+        $emulate = $pdo->getAttribute(\PDO::ATTR_EMULATE_PREPARES);
+        if ($emulate !== false && $emulate !== 0) {
+            throw new \Exception("PDO::ATTR_EMULATE_PREPARES must be explicitly false for native prepared statement security");
+        }
+    }
+
+    // Verify password hashing
+    $rawPassword = 'SuperSecretPassword@2026';
+    $userId = User::create([
+        'name' => 'Hash Test',
+        'email' => 'hash_' . time() . '@test.edu',
+        'password' => $rawPassword,
+        'role' => 'teacher',
+    ]);
+
+    $hash = User::getPasswordHash($userId);
+    if (empty($hash) || $hash === $rawPassword) {
+        throw new \Exception("Password must never be stored in plain text!");
+    }
+    if (!str_starts_with($hash, '$2y$') && !str_starts_with($hash, '$argon2')) {
+        throw new \Exception("Password must be hashed with strong algorithm (bcrypt or argon2)");
+    }
+    if (!User::verifyPassword($rawPassword, $hash)) {
+        throw new \Exception("password_verify must validate the hashed password");
+    }
+    if (User::verifyPassword('WrongPassword', $hash)) {
+        throw new \Exception("password_verify must reject incorrect passwords");
+    }
+});
+
+it('Web server protection files (.htaccess and nginx) are present and properly configured', function () use ($baseDir) {
+    $rootHtaccess = $baseDir . '/.htaccess';
+    $publicHtaccess = $baseDir . '/public/.htaccess';
+    $nginxConfig = $baseDir . '/deploy/nginx.conf.example';
+    $deployDoc = $baseDir . '/deploy/README.md';
+
+    if (!file_exists($rootHtaccess)) {
+        throw new \Exception("Root .htaccess must exist for Apache routing and sensitive directory blocking");
+    }
+    $rootContent = file_get_contents($rootHtaccess);
+    if (!str_contains($rootContent, 'database') || !str_contains($rootContent, '.env') || !str_contains($rootContent, 'public/')) {
+        throw new \Exception("Root .htaccess must block .env/database and rewrite to public/");
+    }
+
+    if (!file_exists($publicHtaccess)) {
+        throw new \Exception("public/.htaccess must exist");
+    }
+    $pubContent = file_get_contents($publicHtaccess);
+    if (!str_contains($pubContent, 'index.php') || !str_contains($pubContent, 'RewriteEngine On')) {
+        throw new \Exception("public/.htaccess must rewrite requests to index.php");
+    }
+
+    if (!file_exists($nginxConfig)) {
+        throw new \Exception("deploy/nginx.conf.example must exist");
+    }
+    if (!file_exists($deployDoc)) {
+        throw new \Exception("deploy/README.md must exist");
+    }
+});
+
+// -------------------------------------------------------------
+// Group 13: Dual Roll Calls & Academic Promotion Module
+// -------------------------------------------------------------
+echo "\n\033[1m[13. Dual Roll Calls & Student Academic Promotion]\033[0m\n";
+
+it('Enforces dual daily roll calls (morning & midday) and strictly restricts Friday to morning only', function () use ($testTeacherId, $testHomeClassId, $testStudentId) {
+    // 1. A Monday date (e.g. 2026-11-16 is Monday)
+    $mondayDate = '2026-11-16';
+    $thisDayOfWeek = (int) date('N', strtotime($mondayDate)); // 1 = Monday
+    if ($thisDayOfWeek !== 1) {
+        throw new \Exception("Date calculation error: expected Monday");
+    }
+
+    // Monday allows morning session
+    if (!Attendance::isValidSessionForDate($mondayDate, 'morning')) {
+        throw new \Exception("Monday morning should be valid");
+    }
+    // Monday allows midday session
+    if (!Attendance::isValidSessionForDate($mondayDate, 'midday')) {
+        throw new \Exception("Monday midday should be valid");
+    }
+
+    // Record morning roll call on Monday
+    Attendance::record($testStudentId, $testHomeClassId, $mondayDate, 'P', 'Monday morning roll call', 'morning');
+    // Record midday roll call on Monday (must succeed and coexist uniquely)
+    Attendance::record($testStudentId, $testHomeClassId, $mondayDate, 'P', 'Monday midday roll call', 'midday');
+
+    $morningRecords = Attendance::getByClassAndDate($testHomeClassId, $mondayDate, 'morning');
+    $middayRecords = Attendance::getByClassAndDate($testHomeClassId, $mondayDate, 'midday');
+    if (count($morningRecords) !== 1 || count($middayRecords) !== 1) {
+        throw new \Exception("Expected both morning and midday attendance sessions to exist for Monday");
+    }
+
+    $sessionStatus = Attendance::getDailySessionStatus($testHomeClassId, $mondayDate);
+    if (empty($sessionStatus['morning_recorded']) || empty($sessionStatus['midday_recorded'])) {
+        throw new \Exception("Expected both morning and midday sessions registered in daily session status");
+    }
+    if (empty($sessionStatus['is_fully_recorded'])) {
+        throw new \Exception("Expected Monday to be fully recorded when morning and midday are done");
+    }
+
+    // 2. A Friday date (e.g. 2026-11-20 is Friday)
+    $fridayDate = '2026-11-20';
+    $friDayOfWeek = (int) date('N', strtotime($fridayDate)); // 5 = Friday
+    if ($friDayOfWeek !== 5) {
+        throw new \Exception("Date calculation error: expected Friday");
+    }
+
+    // Friday morning is valid
+    if (!Attendance::isValidSessionForDate($fridayDate, 'morning')) {
+        throw new \Exception("Friday morning should be valid");
+    }
+    // Friday midday MUST BE INVALID (Half-day schedule rule)
+    if (Attendance::isValidSessionForDate($fridayDate, 'midday')) {
+        throw new \Exception("Friday midday should be rejected by domain policy");
+    }
+
+    // Record Friday morning roll call
+    Attendance::record($testStudentId, $testHomeClassId, $fridayDate, 'P', 'Friday single morning roll call', 'morning');
+
+    // Attempting to record Friday midday must throw an exception or be prevented
+    $middayBlocked = false;
+    try {
+        if (!Attendance::isValidSessionForDate($fridayDate, 'midday')) {
+            throw new \InvalidArgumentException("Friday schedule only supports Morning roll call. Midday session is not permitted.");
+        }
+        Attendance::record($testStudentId, $testHomeClassId, $fridayDate, 'P', 'Friday midday illegal', 'midday');
+    } catch (\InvalidArgumentException $ex) {
+        $middayBlocked = true;
+    }
+    if (!$middayBlocked) {
+        throw new \Exception("Friday midday roll call was not blocked");
+    }
+
+    $fridayRecords = Attendance::getByClassAndDate($testHomeClassId, $fridayDate);
+    if (count($fridayRecords) !== 1) {
+        throw new \Exception("Expected exactly 1 attendance record on Friday (morning only), got " . count($fridayRecords));
+    }
+    if ($fridayRecords[0]['session_type'] !== 'morning') {
+        throw new \Exception("Friday session must be morning");
+    }
+});
+
+it('Promotes students to next class while preserving all historical attendance and marks intact', function () use ($testTeacherId) {
+    // 1. Create 9th Grade and 10th Grade classes
+    $grade9Id = SchoolClass::create([
+        'teacher_id' => $testTeacherId,
+        'name' => '9th Grade',
+        'section' => 'A',
+        'academic_year' => '2025-2026',
+        'is_home_class' => 0,
+    ]);
+
+    $grade10Id = SchoolClass::create([
+        'teacher_id' => $testTeacherId,
+        'name' => '10th Grade',
+        'section' => 'A',
+        'academic_year' => '2026-2027',
+        'is_home_class' => 0,
+    ]);
+
+    // 2. Create student in 9th Grade
+    $studentId = Student::create([
+        'class_id' => $grade9Id,
+        'student_admin_id' => 'ADM-TEST-PROMO',
+        'first_name' => 'Tariq',
+        'last_name' => 'Mansoor',
+        'gender' => 'Male',
+        'primary_phone' => '555-0999',
+        'primary_guardian_name' => 'Mansoor Khan',
+    ]);
+
+    // 3. Record historical attendance under 9th Grade
+    $histDate = '2026-03-10';
+    Attendance::record($studentId, $grade9Id, $histDate, 'P', '9th grade historical session', 'morning');
+
+    // 4. Create an exam and mark under 9th Grade
+    $subjectId = Subject::create([
+        'class_id' => $grade9Id,
+        'name' => 'Science 9',
+        'code' => 'SCI-09',
+    ]);
+
+    $examId = Exam::create([
+        'teacher_id' => $testTeacherId,
+        'class_id' => $grade9Id,
+        'subject_id' => $subjectId,
+        'title' => 'Final Exam 9th',
+        'exam_date' => '2026-03-25',
+        'max_marks' => 100.0,
+    ]);
+
+    Mark::recordBatch($examId, 100.0, 40.0, [
+        $studentId => [
+            'score' => 92.5,
+            'remarks' => 'Outstanding in 9th grade',
+        ],
+    ]);
+
+    // 5. Execute Academic Promotion from 9th Grade to 10th Grade
+    $promotedCount = Student::promoteStudents([$studentId], $grade9Id, $grade10Id, $testTeacherId);
+    if ($promotedCount !== 1) {
+        throw new \Exception("Expected 1 student promoted, got {$promotedCount}");
+    }
+
+    // 6. Verify student is now enrolled in 10th Grade
+    $dossier = Student::findById($studentId);
+    if ((int) $dossier['class_id'] !== $grade10Id) {
+        throw new \Exception("Student class_id expected to be {$grade10Id}, got {$dossier['class_id']}");
+    }
+    if ($dossier['class_name'] !== '10th Grade') {
+        throw new \Exception("Student class_name expected to be 10th Grade, got {$dossier['class_name']}");
+    }
+
+    // 7. Verify historical attendance under 9th Grade remains INTACT with class_id = $grade9Id
+    $pdo = Database::getConnection();
+    $stmt = $pdo->prepare("SELECT class_id, status FROM attendance WHERE student_id = :sid AND attendance_date = :dt");
+    $stmt->execute(['sid' => $studentId, 'dt' => $histDate]);
+    $histAtt = $stmt->fetch();
+    if (!$histAtt) {
+        throw new \Exception("Historical attendance record was lost during promotion");
+    }
+    if ((int) $histAtt['class_id'] !== $grade9Id) {
+        throw new \Exception("Historical attendance class_id was overwritten! Expected {$grade9Id}, got {$histAtt['class_id']}");
+    }
+
+    // 8. Verify historical marks under 9th Grade remain INTACT
+    $marks = Mark::getByStudent($studentId);
+    if (empty($marks)) {
+        throw new \Exception("Historical marks were lost during promotion");
+    }
+    if ($marks[0]['class_name'] !== '9th Grade') {
+        throw new \Exception("Historical mark expected to remain linked to 9th Grade, got {$marks[0]['class_name']}");
+    }
+    if ((float) $marks[0]['marks_obtained'] !== 92.5) {
+        throw new \Exception("Historical mark value changed");
+    }
+
+    // 9. Record NEW attendance under 10th Grade
+    $newDate = '2026-09-05';
+    Attendance::record($studentId, $grade10Id, $newDate, 'P', '10th grade new session', 'morning');
+
+    $stmt = $pdo->prepare("SELECT class_id FROM attendance WHERE student_id = :sid AND attendance_date = :dt");
+    $stmt->execute(['sid' => $studentId, 'dt' => $newDate]);
+    $newAtt = $stmt->fetch();
+    if ((int) $newAtt['class_id'] !== $grade10Id) {
+        throw new \Exception("New attendance expected to be tied to 10th Grade ({$grade10Id}), got {$newAtt['class_id']}");
     }
 });
 

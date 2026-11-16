@@ -28,6 +28,7 @@
         <div class="flex flex-wrap items-center gap-2">
             <!-- Date change form -->
             <form method="GET" action="/attendance/sheet/<?= $class['id'] ?>" class="flex items-center gap-1.5">
+                <input type="hidden" name="session" value="<?= $e($sessionType) ?>">
                 <input type="date"
                        name="date"
                        value="<?= $e($date) ?>"
@@ -50,10 +51,42 @@
             </a>
 
             <!-- Print Register Button -->
-            <a href="/attendance/print/sheet/<?= $class['id'] ?>?date=<?= $e($date) ?>" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all">
+            <a href="/attendance/print/sheet/<?= $class['id'] ?>?date=<?= $e($date) ?>&session=<?= $e($sessionType) ?>" target="_blank" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all">
                 <i data-lucide="printer" class="w-4 h-4 text-indigo-500"></i>
                 <span>Print Daily Table</span>
             </a>
+        </div>
+    </div>
+
+    <!-- Dual Session Selector Tabs -->
+    <div class="flex items-center justify-between p-2 rounded-2xl glass-card border border-slate-200 dark:border-slate-800 gap-2 flex-wrap">
+        <div class="flex items-center gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-2">Session:</span>
+            <!-- Morning Tab -->
+            <a href="/attendance/sheet/<?= $class['id'] ?>?date=<?= $e($date) ?>&session=morning" class="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all <?= ($sessionType === 'morning') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' ?>">
+                <span>🌅 Morning Roll Call</span>
+                <?php if (!empty($sessionStatus['morning_recorded'])): ?>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <?php endif; ?>
+            </a>
+
+            <!-- Midday Tab (Disabled on Friday) -->
+            <?php if ($isFriday): ?>
+                <div class="px-3 py-1.5 rounded-xl text-xs font-medium text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700 cursor-not-allowed flex items-center gap-1.5" title="Friday schedule has only a single morning roll call">
+                    <span>☀️ Midday (Friday Off)</span>
+                </div>
+            <?php else: ?>
+                <a href="/attendance/sheet/<?= $class['id'] ?>?date=<?= $e($date) ?>&session=midday" class="px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all <?= ($sessionType === 'midday') ? 'bg-amber-600 text-white shadow-md shadow-amber-600/30' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200' ?>">
+                    <span>☀️ Midday Roll Call</span>
+                    <?php if (!empty($sessionStatus['midday_recorded'])): ?>
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <?php endif; ?>
+                </a>
+            <?php endif; ?>
+        </div>
+
+        <div class="text-xs text-slate-500 dark:text-slate-400 pr-2">
+            Schedule: <strong class="text-slate-800 dark:text-slate-200"><?= $isFriday ? 'Friday (Morning Only)' : 'Standard (Morning + Midday)' ?></strong>
         </div>
     </div>
 
@@ -63,7 +96,7 @@
             <div class="flex items-center gap-2.5">
                 <i data-lucide="info" class="w-4 h-4 text-indigo-500 flex-shrink-0"></i>
                 <span>
-                    <strong>Editing Mode:</strong> Roll call for <strong><?= date('F d, Y', strtotime($date)) ?></strong> is already on record. Any changes you make will update existing records in-place without creating duplicate entries.
+                    <strong>Editing <?= ucfirst($sessionType) ?>:</strong> <?= ucfirst($sessionType) ?> roll call for <strong><?= date('F d, Y', strtotime($date)) ?></strong> is already on record. Any changes you make will update existing records in-place without creating duplicate entries.
                 </span>
             </div>
             <a href="/attendance/reports?class_id=<?= $class['id'] ?>" class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline whitespace-nowrap">
@@ -76,6 +109,7 @@
     <form method="POST" action="/attendance/sheet/<?= $class['id'] ?>" class="space-y-4">
         <?= $csrf() ?>
         <input type="hidden" name="date" value="<?= $e($date) ?>">
+        <input type="hidden" name="session_type" value="<?= $e($sessionType) ?>">
 
         <div class="space-y-1.5">
             <?php foreach ($students as $stu): ?>

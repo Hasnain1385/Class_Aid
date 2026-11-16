@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 use App\Core\View;
+use App\Core\RateLimiter;
 use App\Models\User;
 use App\Models\SchoolClass;
 use App\Models\Subject;
@@ -23,6 +24,12 @@ class InstallController
 {
     public function showInstall(Request $request): void
     {
+        if (Config::isInstalled()) {
+            Session::flash('error', 'Class Aid is already installed and configured.');
+            Response::redirect('/login');
+            return;
+        }
+
         $requirements = [
             'PHP >= 8.2' => version_compare(PHP_VERSION, '8.2.0', '>='),
             'PDO Extension' => extension_loaded('pdo'),
@@ -41,6 +48,22 @@ class InstallController
 
     public function processInstall(Request $request): void
     {
+        if (Config::isInstalled()) {
+            Session::flash('error', 'Class Aid is already installed and configured.');
+            Response::redirect('/login');
+            return;
+        }
+
+        $ip = $request->ip();
+        $rateLimitKey = 'install:' . $ip;
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            Session::flash('error', "Too many installation attempts. Please wait {$seconds} seconds before trying again.");
+            Response::redirect('/install');
+            return;
+        }
+        RateLimiter::hit($rateLimitKey, 600);
+
         $dbType = $request->input('db_type', 'sqlite');
         $adminName = trim((string) ($request->input('admin_name') ?: $request->input('teacher_name')));
         $email = strtolower(trim((string) $request->input('email')));
@@ -167,6 +190,8 @@ class InstallController
         if ($user) {
             Session::setAuthUser($user);
         }
+
+        RateLimiter::clear($rateLimitKey);
 
         Session::flash('success', "Welcome Super Administrator {$adminName}! Class Aid has been initialized successfully.");
         Response::redirect('/admin');

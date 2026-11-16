@@ -59,9 +59,18 @@ use App\Controllers\ReminderController;
 use App\Controllers\ProfileController;
 use App\Controllers\UpdateController;
 
-// 2. Initialize Session and Configuration
-Session::start();
+// 2. Initialize Configuration and Session
 Config::load($baseDir);
+Session::start();
+
+// First-Launch VPS Onboarding Check: redirect web visitors to setup wizard if not installed
+if (!Config::isInstalled()) {
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
+    if (!str_starts_with($path, '/install') && !str_starts_with($path, '/assets/')) {
+        header('Location: /install');
+        exit;
+    }
+}
 
 // Maintenance Mode Check (active during in-place software updates)
 $maintenanceFile = $baseDir . '/storage/maintenance.flag';
@@ -209,6 +218,8 @@ $router->get('/attendance/print/sheet/{id}', [AttendanceController::class, 'prin
 
 // --- Classes & Subjects Management Routes ---
 $router->get('/classes', [ClassController::class, 'index'], ['auth']);
+$router->get('/classes/promotion', [ClassController::class, 'promotion'], ['auth']);
+$router->post('/classes/promotion', [ClassController::class, 'processPromotion'], ['auth']);
 $router->post('/classes', [ClassController::class, 'store'], ['auth']);
 $router->post('/classes/update/{id}', [ClassController::class, 'update'], ['auth']);
 $router->post('/classes/delete/{id}', [ClassController::class, 'delete'], ['auth']);

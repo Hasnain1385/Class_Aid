@@ -86,6 +86,28 @@ class Request
         return rtrim($configured, '/');
     }
 
+    public function ip(): string
+    {
+        $headers = [
+            'HTTP_CF_CONNECTING_IP', // Cloudflare
+            'HTTP_X_FORWARDED_FOR',  // Reverse Proxy / Load Balancer
+            'HTTP_X_REAL_IP',
+            'REMOTE_ADDR',
+        ];
+
+        foreach ($headers as $header) {
+            if (!empty($this->server[$header])) {
+                $ips = explode(',', (string) $this->server[$header]);
+                $cleanIp = trim($ips[0]);
+                if (filter_var($cleanIp, FILTER_VALIDATE_IP)) {
+                    return $cleanIp;
+                }
+            }
+        }
+
+        return '127.0.0.1';
+    }
+
     public function getPath(): string
     {
         return $this->path;

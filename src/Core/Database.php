@@ -34,10 +34,15 @@ class Database
                 }
 
                 $dsn = "sqlite:" . $dbPath;
-                $pdo = new PDO($dsn);
-                $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+                $pdo = new PDO($dsn, null, null, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                ]);
                 $pdo->exec("PRAGMA foreign_keys = ON;");
+                $pdo->exec("PRAGMA journal_mode = WAL;");
+                $pdo->exec("PRAGMA synchronous = NORMAL;");
+                $pdo->exec("PRAGMA cache_size = -2000;"); // Cap SQLite cache to ~2MB RAM
+                $pdo->exec("PRAGMA temp_store = MEMORY;");
                 self::$instance = $pdo;
             } elseif ($connectionType === 'mysql') {
                 $host = Config::get('DB_HOST', '127.0.0.1');

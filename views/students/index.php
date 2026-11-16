@@ -15,6 +15,10 @@
                 <i data-lucide="printer" class="w-4 h-4 text-violet-500"></i>
                 <span>Print Roster<?= $selectedClassId ? ' (Selected Class)' : '' ?></span>
             </a>
+            <a href="/classes/promotion<?= $selectedClassId ? '?source_class_id=' . $selectedClassId : '' ?>" class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 shadow-sm transition-all" title="Promote students to next grade / class">
+                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                <span>Promote Class</span>
+            </a>
             <a href="/students/import<?= $selectedClassId ? '?class_id=' . $selectedClassId : '' ?>" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/80 shadow-sm transition-all">
                 <i data-lucide="scan-line" class="w-4 h-4 text-indigo-500"></i>
                 <span>Bulk Import (CSV / OCR)</span>
@@ -26,45 +30,65 @@
         </div>
     </div>
 
-    <!-- Filter & Search Toolbar -->
-    <div class="glass-card p-4">
-        <form method="GET" action="/students" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Filter by Class</label>
-                <select name="class_id" onchange="this.form.submit()" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
-                    <option value="">All Managed Classes</option>
-                    <?php foreach ($classes as $c): ?>
-                        <option value="<?= $c['id'] ?>" <?= ($selectedClassId == $c['id']) ? 'selected' : '' ?>>
-                            <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home Class)' : '' ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+    <!-- Filter & Search Toolbar (Collapsible on Mobile) -->
+    <div class="glass-card overflow-hidden">
+        <!-- Mobile Accordion Trigger (Hidden on Desktop) -->
+        <button type="button"
+                onclick="toggleMobileFilters('student-filter-body', 'student-filter-chevron')"
+                class="sm:hidden w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+            <div class="flex items-center gap-2">
+                <i data-lucide="search" class="w-4 h-4 text-indigo-500"></i>
+                <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Search & Filters</span>
+                <?php if ($selectedClassId || !empty($searchQuery)): ?>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        Active Filter
+                    </span>
+                <?php endif; ?>
             </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="text-[11px] font-medium"><?= ($selectedClassId || !empty($searchQuery)) ? 'Tap to edit' : 'Tap to expand' ?></span>
+                <i id="student-filter-chevron" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200 <?= ($selectedClassId || !empty($searchQuery)) ? 'rotate-180' : '' ?>"></i>
+            </div>
+        </button>
 
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Search by Name, Admin ID or Phone</label>
-                <div class="flex gap-2">
-                    <div class="glass-input-group flex-1" onclick="this.querySelector('input')?.focus()">
-                        <div class="input-icon-box">
-                            <i data-lucide="search" class="w-4 h-4"></i>
-                        </div>
-                        <input type="text" 
-                               name="q" 
-                               value="<?= $e($searchQuery) ?>" 
-                               placeholder="e.g. ADM-2026-010, Sarah, or 555-0101" 
-                               class="text-xs">
-                    </div>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
-                        Search
-                    </button>
-                    <?php if (!empty($searchQuery) || $selectedClassId): ?>
-                        <a href="/students" class="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center justify-center transition-all border border-slate-200 dark:border-slate-700">
-                            Clear
-                        </a>
-                    <?php endif; ?>
+        <div id="student-filter-body" class="<?= ($selectedClassId || !empty($searchQuery)) ? 'block' : 'hidden' ?> sm:block p-4 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+            <form method="GET" action="/students" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Filter by Class</label>
+                    <select name="class_id" onchange="this.form.submit()" class="w-full px-3 py-2 text-xs rounded-xl glass-input">
+                        <option value="">All Managed Classes</option>
+                        <?php foreach ($classes as $c): ?>
+                            <option value="<?= $c['id'] ?>" <?= ($selectedClassId == $c['id']) ? 'selected' : '' ?>>
+                                <?= $e($c['name']) ?> - <?= $e($c['section']) ?> <?= $c['is_home_class'] ? '(Home Class)' : '' ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-            </div>
-        </form>
+
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">Search by Name, Admin ID or Phone</label>
+                    <div class="flex gap-2">
+                        <div class="glass-input-group flex-1" onclick="this.querySelector('input')?.focus()">
+                            <div class="input-icon-box">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </div>
+                            <input type="text" 
+                                   name="q" 
+                                   value="<?= $e($searchQuery) ?>" 
+                                   placeholder="e.g. ADM-2026-010, Sarah, or 555-0101" 
+                                   class="text-xs">
+                        </div>
+                        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition-all">
+                            Search
+                        </button>
+                        <a href="/students" class="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border border-slate-200 dark:border-slate-700" title="Reset all search filters">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                            <span>Reset</span>
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Student Cards (Mobile) / Table (Desktop) -->
@@ -209,3 +233,19 @@
     <?php endif; ?>
 
 </div>
+
+<script>
+    function toggleMobileFilters(bodyId, chevronId) {
+        const body = document.getElementById(bodyId);
+        const chevron = document.getElementById(chevronId);
+        if (!body) return;
+        const isHidden = body.classList.contains('hidden');
+        if (isHidden) {
+            body.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            body.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+</script>

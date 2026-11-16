@@ -79,10 +79,11 @@ CREATE TABLE IF NOT EXISTS attendance (
     student_id INTEGER NOT NULL,
     class_id INTEGER NOT NULL,
     attendance_date DATE NOT NULL,
+    session_type TEXT DEFAULT 'morning',
     status TEXT NOT NULL,
     remarks TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(student_id, attendance_date),
+    UNIQUE(student_id, attendance_date, session_type),
     FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
 );
@@ -221,3 +222,20 @@ CREATE TABLE IF NOT EXISTS invoices (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL
 );
+
+-- Performance Indexes for low RAM environments & rapid lookups
+CREATE INDEX IF NOT EXISTS idx_classes_teacher ON classes(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_subjects_class ON subjects(class_id);
+CREATE INDEX IF NOT EXISTS idx_students_class ON students(class_id);
+CREATE INDEX IF NOT EXISTS idx_students_admin_id ON students(student_admin_id);
+CREATE INDEX IF NOT EXISTS idx_attendance_student_date ON attendance(student_id, attendance_date);
+CREATE INDEX IF NOT EXISTS idx_attendance_class_date ON attendance(class_id, attendance_date);
+CREATE INDEX IF NOT EXISTS idx_attendance_status ON attendance(status);
+CREATE INDEX IF NOT EXISTS idx_marks_exam_student ON marks(exam_id, student_id);
+CREATE INDEX IF NOT EXISTS idx_marks_student ON marks(student_id);
+CREATE INDEX IF NOT EXISTS idx_exams_subject ON exams(subject_id);
+CREATE INDEX IF NOT EXISTS idx_parent_call_logs_student ON parent_call_logs(student_id);
+CREATE INDEX IF NOT EXISTS idx_parent_call_logs_teacher ON parent_call_logs(teacher_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_invoices_user ON invoices(user_id);
+CREATE INDEX IF NOT EXISTS idx_reminders_user ON reminders(user_id, due_date);

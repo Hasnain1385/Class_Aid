@@ -36,6 +36,7 @@ class Config
             'GITHUB_REPO' => 'class-aid/class-aid',
             'GITHUB_BRANCH' => 'main',
             'GITHUB_TOKEN' => '',
+            'MEMORY_LIMIT' => '128M',
         ];
 
         // Load version from version.json if present
@@ -81,6 +82,11 @@ class Config
         }
 
         self::$loaded = true;
+
+        $memLimit = (string) (self::$settings['MEMORY_LIMIT'] ?? '128M');
+        if (!empty($memLimit)) {
+            @ini_set('memory_limit', $memLimit);
+        }
     }
 
     public static function get(string $key, mixed $default = null): mixed
@@ -130,6 +136,10 @@ class Config
             $content .= "{$k}={$valStr}\n";
         }
 
-        return file_put_contents(self::$envPath, $content) !== false;
+        $saved = file_put_contents(self::$envPath, $content) !== false;
+        if ($saved) {
+            @chmod(self::$envPath, 0600);
+        }
+        return $saved;
     }
 }

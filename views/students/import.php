@@ -327,11 +327,24 @@
         try {
             const res = await fetch('/students/import/scan', {
                 method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
                 body: formData
             });
 
-            const data = await res.json();
             if (typeof PageLoader !== 'undefined') PageLoader.done();
+
+            const contentType = res.headers.get('content-type') || '';
+            let data;
+            if (contentType.includes('application/json')) {
+                data = await res.json();
+            } else {
+                const rawText = await res.text();
+                const cleanError = rawText.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                throw new Error(cleanError.substring(0, 250) || 'Server returned an invalid response (HTTP ' + res.status + ')');
+            }
 
             if (!data.success) {
                 alert(data.message || 'Error processing data.');

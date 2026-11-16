@@ -1,0 +1,21 @@
+# Class Aid - Root Apache Configuration
+# Routes requests to the /public folder and protects system files & secrets
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Block direct access to secret and system files/directories
+    RewriteRule ^(\.env|\.git|database|storage|src|tests|deploy|bin|vendor|composer\.(json|lock)|version\.json|PRD\.md|MVP_SPEC\.md|README\.md) - [F,L,NC]
+
+    # Rewrite all public traffic to /public/
+    RewriteRule ^$ public/ [L]
+    RewriteRule ^((?!public/).*)$ public/$1 [L]
+</IfModule>
+
+# Block access to hidden files and directories (e.g. .env, .git)
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Prevent directory indexing
+Options -Indexes

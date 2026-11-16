@@ -21,9 +21,10 @@ class AttendanceController
         $selectedDate = (string) $request->query('date', date('Y-m-d'));
 
         foreach ($classes as &$c) {
-            $existing = Attendance::getByClassAndDate((int) $c['id'], $selectedDate);
-            $c['attendance_recorded'] = !empty($existing);
-            $c['recorded_count'] = count($existing);
+            $cId = (int) $c['id'];
+            $c['session_status'] = Attendance::getDailySessionStatus($cId, $selectedDate);
+            $c['attendance_recorded'] = $c['session_status']['is_fully_recorded'];
+            $c['recorded_count'] = $c['session_status']['morning_count'] + $c['session_status']['midday_count'];
         }
         unset($c);
 
@@ -44,11 +45,17 @@ class AttendanceController
             return;
         }
 
-        $date = $request->query('date', date('Y-m-d'));
+        $date = (string) $request->query('date', date('Y-m-d'));
+        $dayOfWeek = (int) date('N', strtotime($date));
+        $isFriday = ($dayOfWeek === 5);
+
+        $requestedSession = (string) $request->query('session', 'morning');
+        $sessionType = $isFriday ? 'morning' : (in_array($requestedSession, ['morning', 'midday'], true) ? $requestedSession : 'morning');
+
         $students = Student::getByClass($cId);
 
-        // Fetch existing attendance records for this date
-        $existing = Attendance::getByClassAndDate($cId, $date);
+        // Fetch existing attendance records for this date and session
+        $existing = Attendance::getByClassAndDate($cId, $date, $sessionType);
         $attendanceMap = [];
         foreach ($existing as $row) {
             $attendanceMap[$row['student_id']] = [
@@ -57,21 +64,30 @@ class AttendanceController
             ];
         }
 
-        // Decorate students with consecutive absence counts & existing status
+        // Decorate students with batch consecutive absence counts & existing status
+        $studentIds = array_column($students, 'id');
+        $consecutiveMap = Student::getBatchConsecutiveAbsences($studentIds);
+
         foreach ($students as &$stu) {
             $stuId = (int) $stu['id'];
-            $stu['consecutive_absences'] = Student::getConsecutiveAbsences($stuId);
+            $stu['consecutive_absences'] = $consecutiveMap[$stuId] ?? 0;
             $stu['current_status'] = $attendanceMap[$stuId]['status'] ?? 'P'; // Default to Present
             $stu['current_remarks'] = $attendanceMap[$stuId]['remarks'] ?? '';
         }
         unset($stu);
 
+        $sessionStatus = Attendance::getDailySessionStatus($cId, $date);
+
         View::render('attendance.sheet', [
-            'title' => 'Roll Call: ' . $class['name'] . ' ' . $class['section'],
+            'title' => ucfirst($sessionType) . ' Roll Call: ' . $class['name'] . ' ' . $class['section'],
             'class' => $class,
             'date' => $date,
+            'sessionType' => $sessionType,
+            'isFriday' => $isFriday,
+            'sessionStatus' => $sessionStatus,
             'students' => $students,
             'isSaved' => !empty($existing),
+            'backUrl' => '/attendance?date=' . $date,
         ]);
     }
 
@@ -85,25 +101,32 @@ class AttendanceController
             return;
         }
 
-        $date = $request->input('date', date('Y-m-d'));
+        $date = (string) $request->input('date', date('Y-m-d'));
+        $dayOfWeek = (int) date('N', strtotime($date));
+        $isFriday = ($dayOfWeek === 5);
+        $sessionType = $isFriday ? 'morning' : (string) $request->input('session_type', 'morning');
+        $sessionType = in_array($sessionType, ['morning', 'midday'], true) ? $sessionType : 'morning';
+
         $records = $request->input('attendance', []);
 
         if (empty($records)) {
             Session::flash('error', 'No student records received.');
-            Response::redirect("/attendance/sheet/{$cId}?date={$date}");
+            Response::redirect("/attendance/sheet/{$cId}?date={$date}&session={$sessionType}");
+            return;
         }
 
-        $existing = Attendance::getByClassAndDate($cId, $date);
+        $existing = Attendance::getByClassAndDate($cId, $date, $sessionType);
         $wasAlreadySaved = !empty($existing);
 
-        Attendance::recordBatch($cId, $date, $records);
+        Attendance::recordBatch($cId, $date, $records, $sessionType);
 
+        $sessionLabel = ucfirst($sessionType);
         $msg = $wasAlreadySaved
-            ? "Roll call for {$date} updated in-place. Existing records were successfully edited without duplicates."
-            : "Attendance for {$date} saved successfully.";
+            ? "{$sessionLabel} roll call for {$date} updated in-place."
+            : "{$sessionLabel} attendance for {$date} saved successfully.";
 
         Session::flash('success', $msg);
-        Response::redirect("/attendance/sheet/{$cId}?date={$date}");
+        Response::redirect("/attendance/sheet/{$cId}?date={$date}&session={$sessionType}");
     }
 
     public function printSheet(Request $request, string $classId): void
@@ -116,9 +139,12 @@ class AttendanceController
             return;
         }
 
-        $date = $request->query('date', date('Y-m-d'));
+        $date = (string) $request->query('date', date('Y-m-d'));
+        $requestedSession = (string) $request->query('session', 'morning');
+        $sessionType = Attendance::normalizeSessionType($date, $requestedSession);
+
         $students = Student::getByClass($cId);
-        $existing = Attendance::getByClassAndDate($cId, $date);
+        $existing = Attendance::getByClassAndDate($cId, $date, $sessionType);
 
         $attendanceMap = [];
         $summary = ['present' => 0, 'absent' => 0, 'late' => 0, 'excused' => 0];
@@ -141,12 +167,14 @@ class AttendanceController
         $teacher = Session::user();
 
         View::render('attendance.print_sheet', [
-            'title' => 'Attendance Sheet - ' . $class['name'] . ' ' . $class['section'] . ' (' . $date . ')',
+            'title' => ucfirst($sessionType) . ' Attendance Sheet - ' . $class['name'] . ' ' . $class['section'] . ' (' . $date . ')',
             'class' => $class,
             'date' => $date,
+            'sessionType' => $sessionType,
             'students' => $students,
             'summary' => $summary,
             'teacher' => $teacher,
+            'backUrl' => '/attendance/sheet/' . $cId . '?date=' . $date . '&session=' . $sessionType,
         ], 'print');
     }
 
@@ -256,6 +284,7 @@ class AttendanceController
             'scope' => $scope,
             'report' => $report,
             'teacher' => $teacher,
+            'backUrl' => '/attendance/reports?class_id=' . $classId,
         ], 'print');
     }
 }

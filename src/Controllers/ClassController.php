@@ -189,4 +189,97 @@ class ClassController
 
         Response::redirect('/classes');
     }
+
+    public function promotion(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $classes = SchoolClass::getAllByTeacher($teacherId);
+
+        $sourceClassId = (int) $request->query('source_class_id', 0);
+        $destClassId = (int) $request->query('dest_class_id', 0);
+
+        if (!$sourceClassId && !empty($classes)) {
+            $sourceClassId = (int) $classes[0]['id'];
+        }
+
+        $sourceClass = $sourceClassId > 0 ? SchoolClass::findById($sourceClassId) : null;
+        $destClass = $destClassId > 0 ? SchoolClass::findById($destClassId) : null;
+
+        $students = [];
+        $batchStats = [];
+        if ($sourceClass) {
+            $students = \App\Models\Student::getByClass($sourceClassId);
+            if (!empty($students)) {
+                $studentIds = array_column($students, 'id');
+                $batchStats = \App\Models\Student::getBatchAttendanceStats($studentIds);
+            }
+        }
+
+        View::render('classes.promotion', [
+            'title' => 'Student Academic Promotion & Rollover',
+            'classes' => $classes,
+            'sourceClass' => $sourceClass,
+            'destClass' => $destClass,
+            'sourceClassId' => $sourceClassId,
+            'destClassId' => $destClassId,
+            'students' => $students,
+            'batchStats' => $batchStats,
+        ]);
+    }
+
+    public function processPromotion(Request $request): void
+    {
+        $teacherId = Session::userId();
+        $sourceClassId = (int) $request->input('source_class_id', 0);
+        $destClassId = (int) $request->input('dest_class_id', 0);
+        $studentIds = (array) $request->input('students', []);
+
+        if (empty($sourceClassId) || empty($destClassId)) {
+            Session::flash('error', 'Both source and destination classes must be selected.');
+            Response::redirect('/classes/promotion');
+            return;
+        }
+
+        if ($sourceClassId === $destClassId) {
+            Session::flash('error', 'Destination class must be different from source class.');
+            Response::redirect('/classes/promotion?source_class_id=' . $sourceClassId);
+            return;
+        }
+
+        if (empty($studentIds)) {
+            Session::flash('error', 'Please select at least one student to promote.');
+            Response::redirect('/classes/promotion?source_class_id=' . $sourceClassId . '&dest_class_id=' . $destClassId);
+            return;
+        }
+
+        $sourceClass = SchoolClass::findById($sourceClassId);
+        $destClass = SchoolClass::findById($destClassId);
+
+        if (!$sourceClass || !$destClass) {
+            Session::flash('error', 'Selected classes could not be found.');
+            Response::redirect('/classes/promotion');
+            return;
+        }
+
+        if ((int)($sourceClass['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin()) {
+            Session::flash('error', 'Access denied to source class.');
+            Response::redirect('/classes/promotion');
+            return;
+        }
+
+        if ((int)($destClass['teacher_id'] ?? 0) !== $teacherId && !Session::isSuperAdmin()) {
+            Session::flash('error', 'Access denied to destination class.');
+            Response::redirect('/classes/promotion');
+            return;
+        }
+
+        try {
+            $promotedCount = \App\Models\Student::promoteStudents($studentIds, $sourceClassId, $destClassId, $teacherId);
+            Session::flash('success', "Successfully promoted {$promotedCount} student(s) to {$destClass['name']} ({$destClass['section']}). Historical records, attendance rolls, and marks remain completely intact.");
+            Response::redirect('/classes/promotion?source_class_id=' . $destClassId);
+        } catch (\Exception $e) {
+            Session::flash('error', 'Failed to promote students: ' . $e->getMessage());
+            Response::redirect('/classes/promotion?source_class_id=' . $sourceClassId . '&dest_class_id=' . $destClassId);
+        }
+    }
 }

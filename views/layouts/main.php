@@ -137,7 +137,7 @@
 
                     <!-- Notifications Dropdown Flyout (Liquid Glass) -->
                     <div id="notifications-flyout"
-                         class="hidden absolute right-0 mt-2 w-80 sm:w-96 rounded-2xl glass-card border border-slate-200/90 dark:border-white/10 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150 origin-top-right">
+                         class="hidden fixed inset-x-3 top-16 sm:inset-x-auto sm:absolute sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 rounded-2xl glass-card border border-slate-200/90 dark:border-white/10 shadow-2xl z-50 overflow-hidden text-left animate-in fade-in zoom-in-95 duration-150 origin-top-right">
 
                         <!-- Header Bar -->
                         <div class="px-4 py-3 bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-200/80 dark:border-white/10 flex items-center justify-between">
@@ -310,16 +310,16 @@
 
     <!-- Desktop Navigation Ribbon (Liquid Glass) -->
     <nav class="hidden md:block liquid-header border-b transition-colors relative z-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-1.5 gap-3">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row items-stretch lg:items-center justify-between py-1.5 gap-2">
 
-            <!-- Scrollable Nav Section with Arrow Buttons & Smooth Wheel Scroll -->
+            <!-- Scrollable Nav Section with Carousel Arrow Buttons & Smooth Wheel Scroll -->
             <div class="relative flex items-center min-w-0 flex-1 overflow-hidden group">
                 <!-- Left Scroll Arrow Button -->
                 <button type="button"
                         id="nav-scroll-left-btn"
-                        onclick="scrollNavRibbon(-180)"
+                        onclick="scrollNavRibbon(-200)"
                         aria-label="Scroll navigation left"
-                        class="hidden p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 mr-1.5 z-10 cursor-pointer">
+                        class="hidden p-1.5 rounded-lg bg-white/95 dark:bg-slate-800/95 text-slate-700 dark:text-slate-200 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 mr-1 z-10 cursor-pointer">
                     <i data-lucide="chevron-left" class="w-4 h-4"></i>
                 </button>
 
@@ -363,15 +363,15 @@
                 <!-- Right Scroll Arrow Button -->
                 <button type="button"
                         id="nav-scroll-right-btn"
-                        onclick="scrollNavRibbon(180)"
+                        onclick="scrollNavRibbon(200)"
                         aria-label="Scroll navigation right"
-                        class="hidden p-1.5 rounded-lg bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 ml-1.5 z-10 cursor-pointer">
+                        class="hidden p-1.5 rounded-lg bg-white/95 dark:bg-slate-800/95 text-slate-700 dark:text-slate-200 shadow-md border border-slate-200/80 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all flex-shrink-0 ml-1 z-10 cursor-pointer">
                     <i data-lucide="chevron-right" class="w-4 h-4"></i>
                 </button>
             </div>
 
-            <!-- Profile & Subscription Badge Links (Fixed Container: Never Overlapped) -->
-            <div class="flex items-center gap-2 flex-shrink-0 z-20 pl-3 border-l border-slate-200 dark:border-slate-800">
+            <!-- Profile & Subscription Badge Links (Right Aligned Container: Never Overlapped) -->
+            <div class="flex items-center justify-end gap-2 flex-shrink-0 z-20 pt-1 lg:pt-0 border-t lg:border-t-0 lg:pl-3 lg:border-l border-slate-200 dark:border-slate-800">
                 <a href="/profile" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg hover:bg-white/80 dark:hover:bg-slate-800/80 text-slate-700 dark:text-slate-300 transition-colors whitespace-nowrap">
                     <i data-lucide="user-cog" class="w-3.5 h-3.5 text-indigo-500"></i>
                     <span>Profile</span>
@@ -681,8 +681,58 @@
             if (modal) modal.classList.add('hidden');
         }
 
+        function scrollNavRibbon(amount) {
+            const ribbon = document.getElementById('desktop-nav-ribbon');
+            if (ribbon) {
+                ribbon.scrollBy({ left: amount, behavior: 'smooth' });
+                setTimeout(updateNavScrollArrows, 250);
+            }
+        }
+        window.scrollNavRibbon = scrollNavRibbon;
+
+        function updateNavScrollArrows() {
+            const ribbon = document.getElementById('desktop-nav-ribbon');
+            const leftBtn = document.getElementById('nav-scroll-left-btn');
+            const rightBtn = document.getElementById('nav-scroll-right-btn');
+            if (!ribbon || !leftBtn || !rightBtn) return;
+
+            const hasOverflow = ribbon.scrollWidth > ribbon.clientWidth + 4;
+            if (!hasOverflow) {
+                leftBtn.classList.add('hidden');
+                rightBtn.classList.add('hidden');
+                return;
+            }
+
+            if (ribbon.scrollLeft > 6) {
+                leftBtn.classList.remove('hidden');
+            } else {
+                leftBtn.classList.add('hidden');
+            }
+
+            if (ribbon.scrollLeft + ribbon.clientWidth < ribbon.scrollWidth - 6) {
+                rightBtn.classList.remove('hidden');
+            } else {
+                rightBtn.classList.add('hidden');
+            }
+        }
+        window.updateNavScrollArrows = updateNavScrollArrows;
+
         document.addEventListener('DOMContentLoaded', () => {
             refreshNotificationBadges();
+            updateNavScrollArrows();
+
+            const ribbon = document.getElementById('desktop-nav-ribbon');
+            if (ribbon) {
+                ribbon.addEventListener('scroll', updateNavScrollArrows, { passive: true });
+                ribbon.addEventListener('wheel', (e) => {
+                    if (e.deltaY !== 0 && ribbon.scrollWidth > ribbon.clientWidth) {
+                        e.preventDefault();
+                        ribbon.scrollLeft += e.deltaY;
+                        updateNavScrollArrows();
+                    }
+                }, { passive: false });
+            }
+            window.addEventListener('resize', updateNavScrollArrows);
         });
     </script>
 

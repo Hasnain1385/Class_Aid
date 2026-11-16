@@ -34,9 +34,11 @@ class StudentController
             $students = Student::getAll($teacherId);
         }
 
-        // Decorate with attendance stats
+        // Decorate with attendance stats in single batch query (O(1) memory & queries)
+        $studentIds = array_column($students, 'id');
+        $batchStats = Student::getBatchAttendanceStats($studentIds);
         foreach ($students as &$stu) {
-            $stu['stats'] = Student::getAttendanceStats((int) $stu['id']);
+            $stu['stats'] = $batchStats[(int) $stu['id']] ?? Student::getAttendanceStats((int) $stu['id']);
         }
         unset($stu);
 
@@ -307,39 +309,49 @@ class StudentController
         $imported = 0;
         $skipped = 0;
 
-        foreach ($students as $stu) {
-            $adminId = trim((string)($stu['student_admin_id'] ?? ''));
-            $firstName = trim((string)($stu['first_name'] ?? ''));
-            $lastName = trim((string)($stu['last_name'] ?? ''));
+        $pdo = \App\Core\Database::getConnection();
+        $pdo->beginTransaction();
+        try {
+            foreach ($students as $stu) {
+                $adminId = trim((string)($stu['student_admin_id'] ?? ''));
+                $firstName = trim((string)($stu['first_name'] ?? ''));
+                $lastName = trim((string)($stu['last_name'] ?? ''));
 
-            if (empty($adminId) || empty($firstName)) {
-                $skipped++;
-                continue;
+                if (empty($adminId) || empty($firstName)) {
+                    $skipped++;
+                    continue;
+                }
+
+                // Check duplicate
+                $existing = Student::findByAdminId($adminId);
+                if ($existing) {
+                    $skipped++;
+                    continue;
+                }
+
+                Student::create([
+                    'student_admin_id' => $adminId,
+                    'class_id' => $classId,
+                    'first_name' => $firstName,
+                    'last_name' => !empty($lastName) ? $lastName : 'Student',
+                    'gender' => $stu['gender'] ?? 'Other',
+                    'dob' => !empty($stu['dob']) ? $stu['dob'] : null,
+                    'primary_guardian_name' => !empty($stu['primary_guardian_name']) ? trim($stu['primary_guardian_name']) : 'Parent/Guardian',
+                    'primary_guardian_relation' => $stu['primary_guardian_relation'] ?? 'Parent',
+                    'primary_phone' => !empty($stu['primary_phone']) ? trim($stu['primary_phone']) : '000-000-0000',
+                    'secondary_phone' => $stu['secondary_phone'] ?? null,
+                    'guardian_email' => $stu['guardian_email'] ?? null,
+                    'address' => $stu['address'] ?? null,
+                    'status' => 'active',
+                ]);
+                $imported++;
             }
-
-            // Check duplicate
-            $existing = Student::findByAdminId($adminId);
-            if ($existing) {
-                $skipped++;
-                continue;
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
             }
-
-            Student::create([
-                'student_admin_id' => $adminId,
-                'class_id' => $classId,
-                'first_name' => $firstName,
-                'last_name' => !empty($lastName) ? $lastName : 'Student',
-                'gender' => $stu['gender'] ?? 'Other',
-                'dob' => !empty($stu['dob']) ? $stu['dob'] : null,
-                'primary_guardian_name' => !empty($stu['primary_guardian_name']) ? trim($stu['primary_guardian_name']) : 'Parent/Guardian',
-                'primary_guardian_relation' => $stu['primary_guardian_relation'] ?? 'Parent',
-                'primary_phone' => !empty($stu['primary_phone']) ? trim($stu['primary_phone']) : '000-000-0000',
-                'secondary_phone' => $stu['secondary_phone'] ?? null,
-                'guardian_email' => $stu['guardian_email'] ?? null,
-                'address' => $stu['address'] ?? null,
-                'status' => 'active',
-            ]);
-            $imported++;
+            throw $e;
         }
 
         $msg = "Bulk import completed! {$imported} student(s) successfully registered.";
@@ -373,9 +385,11 @@ class StudentController
             $students = Student::getAll($teacherId);
         }
 
-        // Decorate with attendance stats
+        // Decorate with attendance stats in single batch query (O(1) memory & queries)
+        $studentIds = array_column($students, 'id');
+        $batchStats = Student::getBatchAttendanceStats($studentIds);
         foreach ($students as &$stu) {
-            $stu['stats'] = Student::getAttendanceStats((int) $stu['id']);
+            $stu['stats'] = $batchStats[(int) $stu['id']] ?? Student::getAttendanceStats((int) $stu['id']);
         }
         unset($stu);
 
@@ -389,6 +403,7 @@ class StudentController
             'classes' => $classes,
             'students' => $students,
             'teacher' => $teacher,
+            'backUrl' => '/students' . ($selectedClass ? '?class_id=' . $selectedClass['id'] : ''),
         ], 'print');
     }
 
@@ -398,10 +413,10 @@ class StudentController
         header('Content-Disposition: attachment; filename="students_import_template.csv"');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['student_admin_id', 'first_name', 'last_name', 'gender', 'primary_phone', 'primary_guardian_name', 'dob', 'address']);
-        fputcsv($output, ['ADM-2026-001', 'Arthur', 'Dent', 'Male', '555-0101', 'Ford Dent', '2010-04-12', '42 Galaxy Way']);
-        fputcsv($output, ['ADM-2026-002', 'Tricia', 'McMillan', 'Female', '555-0102', 'Zaphod McMillan', '2010-08-25', '10 Islington St']);
-        fputcsv($output, ['ADM-2026-003', 'Marvin', 'Android', 'Male', '555-0103', 'Sirius Cyber', '2010-01-15', 'Floor 9 Lab']);
+        fputcsv($output, ['student_admin_id', 'first_name', 'last_name', 'gender', 'primary_phone', 'primary_guardian_name', 'dob', 'address'], ',', '"', '\\');
+        fputcsv($output, ['ADM-2026-001', 'Arthur', 'Dent', 'Male', '555-0101', 'Ford Dent', '2010-04-12', '42 Galaxy Way'], ',', '"', '\\');
+        fputcsv($output, ['ADM-2026-002', 'Tricia', 'McMillan', 'Female', '555-0102', 'Zaphod McMillan', '2010-08-25', '10 Islington St'], ',', '"', '\\');
+        fputcsv($output, ['ADM-2026-003', 'Marvin', 'Android', 'Male', '555-0103', 'Sirius Cyber', '2010-01-15', 'Floor 9 Lab'], ',', '"', '\\');
         fclose($output);
         exit;
     }

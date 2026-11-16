@@ -41,9 +41,30 @@
         <?php endif; ?>
     </div>
 
-    <!-- Filter Console Card -->
-    <div class="glass-card p-5 space-y-4">
-        <form method="GET" action="/attendance/reports" id="filter-form" class="space-y-4">
+    <!-- Filter Console Card (Collapsible on Mobile) -->
+    <div class="glass-card overflow-hidden">
+        <!-- Mobile Accordion Trigger (Hidden on Desktop) -->
+        <button type="button"
+                onclick="toggleMobileFilters('attendance-filter-body', 'attendance-filter-chevron')"
+                class="md:hidden w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+            <div class="flex items-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i>
+                <span class="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">Report Filters</span>
+                <?php if ($selectedClass): ?>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400">
+                        <?= $e($selectedClass['name'] . '-' . $selectedClass['section']) ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs text-slate-500">
+                <span class="text-[11px] font-medium">Filter Options</span>
+                <i id="attendance-filter-chevron" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
+            </div>
+        </button>
+
+        <!-- Filter Body (Collapsed on Mobile by default, Block on md+) -->
+        <div id="attendance-filter-body" class="hidden md:block p-5 border-t md:border-t-0 border-slate-100 dark:border-slate-800 space-y-4">
+            <form method="GET" action="/attendance/reports" id="filter-form" class="space-y-4">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <!-- Class Selector -->
@@ -168,7 +189,12 @@
                     </button>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap justify-end">
+                    <a href="/attendance/reports" class="px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all flex items-center gap-1.5 cursor-pointer" title="Reset all filters to default">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset Filters</span>
+                    </a>
+
                     <button type="button" onclick="printFilteredAttendanceReport()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer">
                         <i data-lucide="printer" class="w-4 h-4 text-indigo-500"></i>
                         <span>Print Filtered A4 Report</span>
@@ -182,6 +208,7 @@
             </div>
 
         </form>
+        </div>
     </div>
 
     <?php if (!$selectedClass): ?>
@@ -447,6 +474,20 @@
 </div>
 
 <script>
+    function toggleMobileFilters(bodyId, chevronId) {
+        const body = document.getElementById(bodyId);
+        const chevron = document.getElementById(chevronId);
+        if (!body) return;
+        const isHidden = body.classList.contains('hidden');
+        if (isHidden) {
+            body.classList.remove('hidden');
+            if (chevron) chevron.classList.add('rotate-180');
+        } else {
+            body.classList.add('hidden');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    }
+
     function updateScopeVisibility() {
         const scope = document.getElementById('scope-select').value;
         const singleWrap = document.getElementById('single-student-wrap');

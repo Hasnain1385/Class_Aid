@@ -18,6 +18,15 @@ class OcrService
     }
 
     /**
+     * Resolve magick or convert binary if available
+     */
+    public static function getMagickBinary(): ?string
+    {
+        $bin = trim((string)@shell_exec('which magick 2>/dev/null || which convert 2>/dev/null'));
+        return (!empty($bin) && file_exists($bin)) ? $bin : null;
+    }
+
+    /**
      * Extract text from an image file path (PNG, JPG, WEBP, TIFF, or PDF).
      */
     public static function extractText(string $filePath): string
@@ -42,20 +51,24 @@ class OcrService
 
             $isPdf = ($mime === 'application/pdf') || str_ends_with(strtolower($filePath), '.pdf');
 
-            // Image preprocessing using ImageMagick if available
-            $convertCmd = 'which convert 2>/dev/null';
-            $hasConvert = !empty(shell_exec($convertCmd));
+            $magickBin = self::getMagickBinary();
 
-            if ($hasConvert) {
+            if ($magickBin) {
+                // Constrain ImageMagick memory usage to avoid RAM spikes on low-RAM servers
+                $magickLimits = '-limit memory 64MB -limit map 128MB -limit disk 500MB';
                 if ($isPdf) {
                     // Extract first page of PDF at high density
-                    $cmd = sprintf('convert -density 250 %s[0] -colorspace Gray -contrast-stretch 0 -resize 150%% %s 2>&1',
+                    $cmd = sprintf('%s %s -density 250 %s[0] -colorspace Gray -resize 150%% %s 2>&1',
+                        escapeshellcmd($magickBin),
+                        $magickLimits,
                         escapeshellarg($filePath),
                         escapeshellarg($preprocessedImage)
                     );
                 } else {
-                    // Preprocess image for maximum OCR accuracy (grayscale, contrast-stretch, moderate sharpen)
-                    $cmd = sprintf('convert %s -colorspace Gray -contrast-stretch 0 %s 2>&1',
+                    // Preprocess image for maximum OCR accuracy (grayscale)
+                    $cmd = sprintf('%s %s %s -colorspace Gray %s 2>&1',
+                        escapeshellcmd($magickBin),
+                        $magickLimits,
                         escapeshellarg($filePath),
                         escapeshellarg($preprocessedImage)
                     );
@@ -64,28 +77,41 @@ class OcrService
             }
 
             // Fallback to original image if preprocessing failed or convert was unavailable
-            $targetImage = (file_exists($preprocessedImage) && filesize($preprocessedImage) > 0)
+            $targetImage = (file_exists($preprocessedImage) && filesize($preprocessedImage) > 50)
                 ? $preprocessedImage
                 : $filePath;
 
-            // Execute Tesseract. Try PSM 6 (single uniform block) first
-            $tesseractCmd = sprintf('tesseract %s stdout --psm 6 2>/dev/null', escapeshellarg($targetImage));
+            // Execute Tesseract: Try PSM 3 (standard automatic page segmentation for tables & rosters)
+            $tesseractCmd = sprintf('tesseract %s stdout -l eng --psm 3 2>/dev/null', escapeshellarg($targetImage));
             $text = (string) shell_exec($tesseractCmd);
 
-            // If PSM 6 returned very little text, try PSM 4 (single column variable sizes) or PSM 3 (fully automatic)
-            if (strlen(trim($text)) < 15) {
-                $tesseractCmdAlt = sprintf('tesseract %s stdout --psm 4 2>/dev/null', escapeshellarg($targetImage));
-                $altText = (string) shell_exec($tesseractCmdAlt);
-                if (strlen(trim($altText)) > strlen(trim($text))) {
-                    $text = $altText;
+            // If PSM 3 returned very little text, try PSM 6 (single uniform block) or PSM 4 (single column variable sizes)
+            if (strlen(trim($text)) < 25) {
+                $altText6 = (string) shell_exec(sprintf('tesseract %s stdout -l eng --psm 6 2>/dev/null', escapeshellarg($targetImage)));
+                if (strlen(trim($altText6)) > strlen(trim($text))) {
+                    $text = $altText6;
                 }
             }
 
-            if (strlen(trim($text)) < 15) {
-                $tesseractCmdAlt3 = sprintf('tesseract %s stdout --psm 3 2>/dev/null', escapeshellarg($targetImage));
-                $altText3 = (string) shell_exec($tesseractCmdAlt3);
-                if (strlen(trim($altText3)) > strlen(trim($text))) {
-                    $text = $altText3;
+            if (strlen(trim($text)) < 25) {
+                $altText4 = (string) shell_exec(sprintf('tesseract %s stdout -l eng --psm 4 2>/dev/null', escapeshellarg($targetImage)));
+                if (strlen(trim($altText4)) > strlen(trim($text))) {
+                    $text = $altText4;
+                }
+            }
+
+            if (strlen(trim($text)) < 25) {
+                $altText11 = (string) shell_exec(sprintf('tesseract %s stdout -l eng --psm 11 2>/dev/null', escapeshellarg($targetImage)));
+                if (strlen(trim($altText11)) > strlen(trim($text))) {
+                    $text = $altText11;
+                }
+            }
+
+            // If preprocessed image produced very little text, try directly on raw original file
+            if ($targetImage !== $filePath && strlen(trim($text)) < 25) {
+                $rawText = (string) shell_exec(sprintf('tesseract %s stdout -l eng --psm 3 2>/dev/null', escapeshellarg($filePath)));
+                if (strlen(trim($rawText)) > strlen(trim($text))) {
+                    $text = $rawText;
                 }
             }
 
@@ -103,12 +129,17 @@ class OcrService
     public static function extractFromBase64(string $base64Data): string
     {
         // Strip data URI header if present (e.g. data:image/png;base64,...)
-        if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
-            $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+        if (str_contains($base64Data, ';base64,')) {
+            $base64Data = substr($base64Data, strpos($base64Data, ';base64,') + 8);
+        } elseif (preg_match('/^data:image\/[^;]+;base64,/', $base64Data)) {
+            $base64Data = preg_replace('/^data:image\/[^;]+;base64,/', '', $base64Data);
         }
 
-        $decoded = base64_decode($base64Data);
-        if ($decoded === false) {
+        // Clean any spaces or newlines introduced by POST transport
+        $base64Data = str_replace([' ', "\r", "\n", "\t"], ['+', '', '', ''], $base64Data);
+
+        $decoded = base64_decode($base64Data, true);
+        if ($decoded === false || empty($decoded)) {
             return '';
         }
 

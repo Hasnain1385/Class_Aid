@@ -114,7 +114,7 @@
 
     <!-- Action Bar (Hidden when printed) -->
     <div class="max-w-[210mm] mx-auto mb-6 flex items-center justify-between no-print">
-        <a href="javascript:history.back()" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold shadow-sm transition-colors">
+        <a id="backToAppBtn" href="<?= $e($backUrl ?? '/attendance/reports') ?>" class="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-700 hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold shadow-sm transition-colors cursor-pointer">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             <span>Back to Application</span>
         </a>
@@ -142,6 +142,22 @@
 
     <script>
         lucide.createIcons();
+
+        document.getElementById('backToAppBtn')?.addEventListener('click', function(e) {
+            // If opened as a popup or separate window with opener, attempt to close
+            if (window.opener && !window.opener.closed) {
+                try {
+                    window.close();
+                } catch (err) {}
+            }
+            // If window is still open (browser blocked close, or opened in regular tab)
+            // check if we can go back within application history
+            if (window.history.length > 1 && document.referrer && document.referrer.indexOf(window.location.host) !== -1) {
+                e.preventDefault();
+                window.history.back();
+            }
+            // If history is empty or external, allow standard href navigation to backUrl
+        });
     </script>
 </body>
 </html>

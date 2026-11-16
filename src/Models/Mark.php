@@ -96,10 +96,12 @@ class Mark
             SELECT m.*, m.grade as letter_grade,
                    (m.marks_obtained >= e.pass_marks) as is_passed,
                    e.title as exam_title, e.max_marks, e.pass_marks, e.exam_date, e.term,
-                   sub.name as subject_name, sub.code as subject_code
+                   sub.class_id, sub.name as subject_name, sub.code as subject_code,
+                   c.name as class_name, c.section as class_section
             FROM marks m
             JOIN exams e ON e.id = m.exam_id
             JOIN subjects sub ON sub.id = e.subject_id
+            JOIN classes c ON c.id = sub.class_id
             WHERE m.student_id = :student_id
             ORDER BY e.exam_date DESC
         ");

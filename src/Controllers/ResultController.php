@@ -136,6 +136,7 @@ class ResultController
             'marks' => $marks,
             'attendanceStats' => $attendanceStats,
             'teacher' => $user,
+            'backUrl' => '/results/student/' . $sId,
         ], 'print');
     }
 
@@ -172,6 +173,7 @@ class ResultController
             'students' => $students,
             'analytics' => $analytics,
             'teacher' => $teacher,
+            'backUrl' => '/results/exam/' . $eId,
         ], 'print');
     }
 
@@ -303,6 +305,7 @@ class ResultController
             'examAverages' => $examAverages,
             'totalMaxMarks' => $totalMaxMarks,
             'teacher' => $teacher,
+            'backUrl' => '/results',
         ], 'print');
     }
 
@@ -436,14 +439,14 @@ class ResultController
         header('Content-Disposition: attachment; filename="exam_marks_' . preg_replace('/[^a-zA-Z0-9_-]/', '_', $exam['title']) . '.csv"');
 
         $output = fopen('php://output', 'w');
-        fputcsv($output, ['student_admin_id', 'student_name', 'score', 'remarks']);
+        fputcsv($output, ['student_admin_id', 'student_name', 'score', 'remarks'], ',', '"', '\\');
         foreach ($students as $stu) {
             fputcsv($output, [
                 $stu['student_admin_id'],
                 $stu['first_name'] . ' ' . $stu['last_name'],
                 '',
                 ''
-            ]);
+            ], ',', '"', '\\');
         }
         fclose($output);
         exit;
